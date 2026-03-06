@@ -1,1 +1,623 @@
---[[ v1.0.0 https://wearedevs.net/obfuscator ]] return(function(...)local Z={"\087\065\079\061";"\054\077\076\120\054\068\061\061","\087\081\076\120\122\081\087\115\085\047\107\078\111\081\087\112\111\081\087\069\085\068\061\061","\104\077\071\109\104\077\076\065","\111\081\071\084\111\070\102\055\106\074\122\061";"\106\052\047\061","\106\081\071\103\054\070\051\065\122\074\078\109\054\108\061\061";"\122\081\051\103\106\081\108\061";"\067\049\071\086\054\083\073\061";"\104\077\103\103\122\116\061\061";"\111\087\102\080\088\077\120\055","\111\083\121\108\104\083\051\114";"\107\084\078\073\054\070\080\115\105\076\047\121\054\087\107\105\088\084\122\061","\122\074\087\120\106\043\054\078";"\122\074\076\109\054\081\071\120";"\050\116\061\061";"\107\077\055\050\066\047\102\102\087\081\051\082\119\065\055\050\054\067\068\061";"\067\049\071\055\106\074\107\078\066\089\061\061";"\066\048\076\084\054\052\087\083\075\081\107\057\083\119\111\103","\106\083\076\065\088\089\061\061";"\054\074\090\097\106\043\085\061","\111\081\071\109\111\083\049\072\054\067\085\061";"\054\067\102\115\106\043\085\061","\105\070\107\065\122\047\111\078\111\089\061\061","\122\043\107\115\088\083\121\048","\087\084\087\055\119\075\116\077\122\043\054\098\122\047\120\083\104\065\079\061","\083\083\076\085\105\052\102\076\122\087\047\049\068\112\103\120","\079\087\074\097\049\049\070\079\113\103\116\102\065\048\053\122\118\078\065\115\070\081\112\068\075\065\084\120\048\103\114\084\082\088\043\047\101\077\122\053\067\050\114\109","\122\083\049\055\119\087\111\084\083\070\089\077\119\052\104\077\054\089\061\061","\051\047\090\049\111\078\111\109\107\069\079\077\105\112\098\075\051\075\104\061";"\054\043\051\049\104\116\061\061","\054\069\103\080\119\076\080\084\051\070\111\119\051\069\102\072";"\122\077\087\065\106\083\087\065\104\067\107\103\104\074\090\078","\067\049\071\120\054\067\107\103\111\081\076\072\106\081\075\061";"\104\048\078\065\054\068\061\061","\111\081\076\072\106\081\075\061";"\083\048\098\102\122\070\107\073\088\087\102\109\111\075\103\070\122\116\061\061","\054\077\049\103\111\081\051\110";"\105\075\051\080\107\070\111\077\111\084\078\043\106\076\054\077\066\067\116\061";"";"\083\048\111\083\068\084\103\119\107\089\061\061";"\088\081\078\072\122\078\107\110\107\087\107\097\122\065\076\054\107\089\061\061","\106\081\087\109";"\050\072\116\078\054\099\110\055\050\116\061\061";"\106\052\085\061";"\067\049\071\048\104\108\061\061";"\122\077\110\073\106\078\051\105\105\075\090\087\083\076\103\090\051\052\075\061"}for Q,v in ipairs({{-849372+849373,-437097+437144},{573789+-573788;-202205+202220};{-447423+447439;871665+-871618}})do while v[-107965+107966]<v[292374-292372]do Z[v[-687147-(-687148)]],Z[v[452067+-452065]],v[-443834+443835],v[643268+-643266]=Z[v[-1032978-(-1032980)]],Z[v[-952470+952471]],v[-717859-(-717860)]+(-903935-(-903936)),v[-479000-(-479002)]-(-506528+506529)end end local function Q(Q)return Z[Q-(-615188+661505)]end do local Q=Z local v=table.concat local W=string.char local k=table.insert local t=type local y={i=-368191-(-368209),s=-8231-(-8281),d=-753290-(-753332),b=-78231-(-78232),w=543389-543370;["\054"]=-657804+657829;R=421482+-421472,O=991658-991598,N=934625+-934588;A=740252-740200,E=414737+-414701;P=245561-245549;["\052"]=580316-580313,l=90509-90461;D=-260369-(-260385),B=520895-520865;o=779270+-779241;r=-310904+310947,j=246169-246142;X=-836084+836110;["\057"]=-478530+478541;x=580752+-580707,["\049"]=70581+-70528;["\043"]=-400137+400192,T=-570961-(-571012),a=-583374-(-583421);h=-483560+483584;H=382778-382744,C=197851-197828;J=567141+-567103,G=-385485+385546;K=108243-108223;["\053"]=863474-863416;["\056"]=891528-891465;W=-532623+532644;q=527742-527683;k=270696+-270679;f=918082+-918073,L=-179518+179523;["\047"]=377214+-377210,Q=549048+-549042;t=438836-438804;n=-253180-(-253220);M=791778+-791724;z=-721842-(-721870),y=-1043248-(-1043305),["\048"]=-370504+370543,["\050"]=328949-328935,I=883717+-883661,g=277409+-277376,u=-328570+328632;Y=320756+-320756,Z=183460+-183411;S=416479-416457;p=-786456+786491,["\051"]=1039612-1039599,V=870517-870473;["\055"]=-346551-(-346592);e=-194146+194177,U=-229015+229023,v=-363206+363221,F=678354+-678347;c=479700+-479698;m=909625+-909579}local z=string.sub local K=string.len local s=math.floor for Z=185929+-185928,#Q,179995+-179994 do local p=Q[Z]if t(p)=="\115\116\114\105\110\103"then local t=K(p)local U={}local S=-596869-(-596870)local j=622150-622150 local b=-762843-(-762843)while S<=t do local Z=z(p,S,S)local Q=y[Z]if Q then j=j+Q*(-372224-(-372288))^((616330+-616327)-b)b=b+(217870+-217869)if b==899665-899661 then b=495633+-495633 local Z=s(j/(368490+-302954))local Q=s((j%(509696-444160))/(-862080-(-862336)))local v=j%(114767+-114511)k(U,W(Z,Q,v))j=-488162-(-488162)end elseif Z=="\061"then k(U,W(s(j/(-759509-(-825045)))))if S>=t or z(p,S+(661198-661197),S+(992947-992946))~="\061"then k(U,W(s((j%(525297+-459761))/(904478-904222))))end break end S=S+(-764352+764353)end Q[Z]=v(U)end end end return(function(Z,W,k,t,y,z,K,U,l,j,S,v,b,p,O,f,C,T,s,i)C,i,v,s,b,p,j,O,T,f,U,l,S=function(Z,Q)local W=j(Q)local k=function()return v(Z,{},Q,W)end return k end,function(Z,Q)local W=j(Q)local k=function(k,t,y,z,K,s,p)return v(Z,{k;t;y;z;K;s,p},Q,W)end return k end,function(v,k,t,y)local u,Y,M,B,X,L,T,R,S,p,D,c,N,I,V,E,P,G,b,g,K,m,x,J,d,F,a,r,A,j,n,q,h,H while v do if v<7812347-(-431901)then if v<932598+2566697 then if v<969078+401068 then if v<-494594+1342739 then if v<342925+323999 then if v<995367-794653 then if v<278776-173923 then h=not a H=H+R D=H<=r D=h and D h=H>=r h=a and h D=h or D h=414331+7918292 v=D and h D=-724897+7366092 v=v or D else v=true v=v and-823073+6590212 or 12342411-732102 end else v=454658+12593763 s[S]=K end else if v<-381348+1166847 then v=140202-22282 else v=2306692-(-18466)end end else if v<2096288-920530 then if v<857465-(-215965)then u=#h q=944394+-944394 G=u==q v=G and 16777+16463240 or 276842+10020910 else j=429348-429223 S=s[t[93590+-93588]]p=S*j S=449693+13966195702986 K=p+S S=-630040+630041 p=35184371839150-(-249682)v=K%p s[t[-705854+705856]]=v p=s[t[-822126+822129]]v=986571+3358290 K=p~=S end else if v<-771831+2085332 then u=u+L Y=not B G=u<=q G=Y and G Y=u>=q Y=B and Y G=Y or G Y=5072810-518797 v=G and Y G=-147381+8997427 v=v or G else v=s[t[972832+-972822]]S=s[t[538622+-538611]]p[v]=S v=s[t[487119+-487107]]S={v(p)}v=Z[Q(-18714+65072)]K={W(S)}end end end else if v<722833+1861751 then if v<1738581-(-484701)then if v<452211+1752660 then if v<1834434-16721 then v=true v=592508+3046313 else v=12601421-(-84933)p=nil s[t[373848-373843]]=K end else v=13880765-401855 end else if v<-734749+3173150 then h=nil g=nil r=f(r)R=nil r=Q(-262593-(-308950))j=f(j)v=94672+1148974 G=nil b=f(b)D=nil H=f(H)h={}x=f(x)a=nil S=f(S)u=f(u)j=nil H=U()T=f(T)S=nil u=-440747+441003 g=Q(-755322-(-801674))q=u T=Z[g]R={}g=Q(-967962-(-1014315))b=T[g]T=U()s[T]=b x=Q(70315+-23963)g=Z[x]G=599770+-599769 x=Q(-1029501+1075848)D=Q(533116+-486795)b=g[x]x=Z[D]D=Q(95927-49581)g=x[D]D=Z[r]r=Q(-899145-(-945487))x=D[r]D=-667083-(-667083)r=U()s[r]=D D=35597+-35595 s[H]=D a=U()D={}s[a]=R R=184939-184939 u=645967+-645966 L=u u=-747439+747439 B=L<u u=G-L else L=not q A=A+d K=A<=c K=L and K L=A>=c L=q and L K=L or K L=3496466-409526 v=K and L K=917798+14383659 v=v or K end end else if v<-1004741+4063868 then if v<-436992+3273157 then K=Q(-372544-(-418874))v=Z[K]p=Q(-578907+625245)K=Z[p]p=Q(664189-617851)Z[p]=v v=13547892-68982 p=Q(-319573-(-365903))Z[p]=K p=s[t[158666+-158665]]S=p()else v=6354807-(-291789)S=s[t[-454539+454541]]j=s[t[-56173+56176]]p=S==j K=p end else if v<3400052-311738 then n=Q(-804738-(-851075))L=U()B=Q(245318-198966)s[L]=A K=Z[B]Y=-462337+462437 B=Q(552870+-506523)v=K[B]B=286694+-286693 K=v(B,Y)B=U()X=388743-388488 s[B]=K I=-361346+361348 v=s[x]Y=-432937-(-432937)K=v(Y,X)X=-957328+957329 F=756228-756227 Y=U()s[Y]=K v=s[x]N=s[B]K=v(X,N)X=U()s[X]=K K=s[x]N=K(F,I)I=Q(275150+-228802)K=-467903-(-467904)v=N==K J=-54426-(-64426)N=U()K=Q(-953611+999940)s[N]=v m=Z[n]V=s[x]P=-46290-(-46290)E={V(P,J)}v=Q(-749098+795461)n=m(W(E))m=Q(-531258-(-577606))M=n..m F=I..M v=G[v]v=v(G,K,F)F=U()s[F]=v I=Q(334958+-288618)M=l(341163+13699258,{x,L,H,j;S;u;N;F;B;X,Y,r})K=Z[I]I={K(M)}v={W(I)}I=v v=s[N]v=v and-485715+8750497 or 9606383-556878 else P=-195213+195214 s[S]=M E=s[X]V=E+P n=I[V]m=R+n n=-660410-(-660666)v=m%n V=s[Y]R=v n=a+V V=-146179-(-146435)m=n%V v=-110900+13159321 a=m end end end end else if v<-722486+6552749 then if v<4646445-95723 then if v<83015+4016412 then if v<1007601+2664723 then if v<2924714-(-678816)then K=M v=m v=30938-(-185208)else v=C(2297278-81590,{b})c={v()}K={W(c)}v=Z[Q(-317194+363526)]end else r=U()R=-427009+427074 H=-911561-(-911564)s[r]=K v=s[x]K=v(H,R)H=U()G=O(226977+8494296,{})h=Q(-975571+1021911)s[H]=K v=21391+-21391 R=v K=Z[h]h={K(G)}v=498454-498454 a=v v={W(h)}h=v K=2249-2247 v=h[K]G=v K=Q(701655-655301)v=Z[K]d=Q(530838+-484501)u=s[j]c=Z[d]d=c(G)c=Q(1019632+-973303)A=u(d,c)u={A()}K=v(W(u))u=U()v=2224123-(-248857)s[u]=K A=s[H]K=350206+-350205 c=A A=542905-542904 d=A A=407848+-407848 q=d<A A=K-d end else if v<4860905-468898 then j=46547-46370 S=s[t[-426075-(-426078)]]v=-54583+6934608 p=S*j S=802656+-802399 K=p%S s[t[92398-92395]]=K else E=32894+-32893 V=I[E]E=false m=v n=V==E M=n v=n and 106768+13007621 or 84106+3464689 end end else if v<-653453+6213402 then if v<5921919-871706 then G=u Y=G v=706641-(-537005)h[G]=Y G=nil else v=Z[Q(-933368+979727)]K={}end else if v<5614437-(-146376)then v=9466846-722682 c=R==a A=c else v=s[x]d=697401+-697400 q=732627-732621 c=v(d,q)q=Q(39440-(-6890))v=Q(-636542+682872)Z[v]=c d=Z[q]q=-512381-(-512383)v=d>q v=v and 11584753-127423 or 14530189-122077 end end end else if v<-716361+7573361 then if v<7279529-635166 then if v<706878+5838269 then if v<6447413-356073 then j=9964390-885938 S=Q(507281-460938)p=S^j K=-173199-(-412483)v=K-p K=Q(505779-459446)p=v v=K/p K={v}v=Z[Q(398265+-351920)]else p=s[t[-999036-(-999037)]]K=#p p=429713+-429713 v=K==p v=v and 356824-(-756062)or 13162399-840723 end else g=nil x=nil b=nil v=1003835+11279294 end else if v<6187908-(-598824)then v=K and-634799+14233967 or-360591+13046945 else v=true K={}s[t[-31635-(-31636)]]=v v=Z[Q(65637-19275)]end end else if v<7736565-(-88727)then if v<7822277-689322 then S=s[t[853523+-853520]]j=-884373-(-884374)p=S~=j v=p and 10217057-(-662004)or-886611+5231472 else j=s[t[747959-747953]]S=j==p v=-796228+2996063 K=S end else if v<281976+7874431 then K=Q(-540394+586749)p=Q(747280+-700945)v=Z[K]K=v(p)v=Z[Q(-1030268+1076632)]K={}else v=true v=v and 1465353-772483 or-348514+3987335 end end end end end else if v<-477051+12790003 then if v<10391306-366456 then if v<9531153-671163 then if v<-785222+9512321 then if v<305894+8246418 then if v<9057903-767611 then M=s[S]v=M and 542896+3904056 or 238890-22744 K=M else d=Q(-744173+790530)c=Z[d]v=112634+-52709 D=H d=Q(162840-116520)A=c[d]c=A(p,D)A=s[t[-852611+852617]]d=A()u=c+d G=u+g u=349290+-349034 h=G%u g=h u=j[S]D=nil d=-114056-(-114057)c=g+d A=b[c]G=u..A j[S]=G end else j=3308418-187829 K=4901285-641459 S=Q(-401720+448071)p=S^j v=K-p K=Q(-953987+1000313)p=v v=K/p K={v}v=Z[Q(554878-508551)]end else if v<-48194+8867984 then s[S]=A v=s[S]v=v and-183494-(-1026771)or 2475561-798281 else v=-481067+10778819 u=#h q=365345-365345 G=u==q end end else if v<-1026717+10177265 then if v<8919604-(-76850)then S=j v=s[t[748846+-748845]]r=-629582-(-629837)D=112052-112052 x=v(D,r)v=358403+12347463 p[S]=x S=nil else m=s[S]v=m and-813588+17126247 or 4343230-858754 M=m end else if v<9910895-593185 then S=-417644+417645 j=s[t[469139-469130]]v={}b=j j=587442-587441 T=j j=-408774-(-408774)g=T<j p=v j=S-T v=816181+11889685 else H=Q(-649928-(-696272))v=3237606-(-454983)r=Z[H]K=r end end end else if v<-303020+11413793 then if v<1038018+9691575 then if v<10176028-(-315661)then if v<-35885+10364334 then Y=28131+-28130 u=-421034-(-421035)q=#h G=b(u,q)u=g(h,G)G=nil v=278873+580669 q=s[a]B=u-Y L=x(B)q[u]=L u=nil else h=Q(792044-745723)a=Z[h]h=Q(-1001493+1047837)R=a[h]r=R v=11627869-787912 end else j=Q(54401+-8044)T=U()x=Q(-446169+492509)p=k S=U()v=true b=U()s[S]=v K=Z[j]j=Q(546832-500509)v=K[j]D=O(5916926-(-901214),{T})j=U()s[j]=v v=O(7039303-(-836405),{})s[b]=v v=false s[T]=v g=Z[x]x=g(D)K=x v=x and 16276489-575523 or-922075+15034191 end else if v<846924+10031116 then v=H K=r v=r and-838908+4531497 or-597927+9917523 else v=96448+12225228 S=s[t[368310-368307]]j=-1030217+1030249 p=S%j R=693526+-693513 b=s[t[449476+-449472]]r=933193+-933191 x=s[t[-79611+79613]]G=s[t[209077-209074]]h=G-p G=-133651+133683 a=h/G H=R-a D=r^H g=x/D T=b(g)D=-398991-(-398992)b=-113797+4295081093 j=T%b T=-115003-(-115005)b=T^p S=j/b r=945602-945346 b=s[t[-524134+524138]]x=S%D D=4295211309-244013 g=x*D T=b(g)R=13491+-13235 b=s[t[805636-805632]]g=b(S)j=T+g T=-207736-(-273272)x=-321153-(-386689)b=j%T g=j-b T=g/x p=nil x=-120367+120623 g=b%x S=nil D=b-g j=nil x=D/r r=1043855+-1043599 D=T%r H=T-D r=H/R H={g,x,D,r}s[t[-475480-(-475481)]]=H r=nil x=nil D=nil g=nil b=nil T=nil end end else if v<-292856+12000605 then if v<-5744+11467339 then d=Q(1027862+-981525)v=Z[d]L=Q(-868286-(-914624))q=Z[L]d=v(q)v=Q(-838604+884934)Z[v]=d v=14093770-(-324559)else v=Z[Q(22471-(-23851))]K={}end else if v<1021819+11097635 then S=k[-607398+607400]v=s[t[-840990+840991]]p=k[684720-684719]j=v v=j[S]v=v and 57119+13063541 or 622147+15637646 else v=Z[Q(-857981-(-904305))]K={S}end end end end else if v<-206240+14316444 then if v<12374057-(-743403)then if v<12012381-(-965305)then if v<699331+11996591 then if v<11985426-(-390174)then v=Z[Q(182162-135813)]j=Q(-633036+679357)S=Z[j]j=Q(336689+-290343)p=S[j]j=s[t[-381583-(-381584)]]S={p(j)}K={W(S)}else v=s[t[366134+-366127]]v=v and-1045021+16662920 or-308599+9517321 end else x=not g j=j+T S=j<=b S=x and S x=j>=b x=g and x S=x or S x=960499+7915830 v=S and x S=-735266+2048928 v=v or S end else if v<13105099-28876 then L=f(L)F=f(F)B=f(B)X=f(X)Y=f(Y)I=nil N=f(N)v=-90148+2563128 else E=-670589+670591 V=I[E]E=s[F]v=4213188-664393 n=V==E M=n end end else if v<14089102-600951 then if v<891980+12559458 then v=13275956-992827 else v=true v=v and 2136708-(-579019)or 4910536-(-603260)end else if v<14165412-536016 then K=Q(789743+-743389)b=Q(-426234+472571)D=Q(118371-72031)v=Z[K]p=s[t[835860+-835856]]j=Z[b]x=Z[D]r=O(6865994-998551,{})D={x(r)}x=-310978-(-310980)g={W(D)}T=g[x]b=j(T)j=Q(-811354+857683)S=p(b,j)p={S()}K=v(W(p))S=s[t[-862884+862889]]p=K K=S v=S and 7161499-14196 or 7727+2192108 else S=s[t[447235-447234]]T=-261553+261555 b=476343-476342 j=S(b,T)S=-937718+937719 p=j==S K=p v=p and 5776674-(-869922)or-713779+3721045 end end end else if v<532965+15159175 then if v<15143326-(-29284)then if v<15115734-707470 then if v<13581017-(-725340)then x=Q(494818-448466)g=K K=Z[x]x=Q(-689190-(-735537))v=K[x]D=Q(116420+-70099)x=U()a=Q(-459950-(-506271))s[x]=v K=Z[D]D=Q(283675-237339)v=K[D]H=v R=Z[a]D=v r=R v=R and-193070+10566774 or 11123001-283044 else q=Q(640222-593892)v=Z[q]q=Q(1047074+-1000736)Z[q]=v v=-284501+14702830 end else v=634931-517011 end else if v<15197195-(-302917)then c=s[S]A=c v=c and 5743618-(-5012)or 817445+7926719 else p=Q(-634589-(-680944))v=Z[p]j=-697783-(-697783)S=s[t[64752+-64744]]p=v(S,j)v=8529191-(-679531)end end else if v<-989541+17288235 then if v<1028160+14692118 then v=-873132+14985248 g=s[T]K=g else v={}T=-656901+35184372745733 s[t[-914886-(-914888)]]=v K=s[t[-252072-(-252075)]]b=K K=S%T D=Q(360285+-313928)s[t[35357+-35353]]=K x=-777501-(-777756)g=S%x x=-516400+516402 v=-508465+568390 T=g+x s[t[114699+-114694]]=T x=Z[D]D=Q(223352+-177024)g=x[D]x=g(p)g=Q(-978869-(-1025194))j[S]=g g=-1018647+1018692 r=x H=-703374+703375 R=H D=732440+-732439 H=-597712-(-597712)a=R<H H=D-R end else if v<17004053-543739 then v=244674+3239802 n=241146-241145 m=I[n]M=m else L=U()n=nil b=nil G={}u=U()x=nil s[u]=G D=nil q=O(6129559-(-83903),{u;r;H;T})T=f(T)G=U()K={}s[G]=q R=nil R=-375025+27937582590914 q={}T=Q(-11815-(-58154))s[L]=q B=Q(749464-703146)h=nil N=Q(940241-893891)q=Z[B]I=Q(-599407+645726)F=s[L]Y={}X={[N]=F,[I]=n}B=q(Y,X)S=B q=i(11175080-(-701933),{L;u;a,r,H,G})r=f(r)G=f(G)j=q g=nil x=Q(1030695+-984361)a=f(a)L=f(L)u=f(u)b=Z[T]g=Z[x]H=f(H)H=Q(-437700+484060)v=Z[Q(-1002269+1048630)]r=j(H,R)D=S[r]r=Q(-630294-(-676650))j=nil r=g[r]x={r(g,D)}S=nil T=b(W(x))b=T()end end end end end end end v=#y return W(K)end,{},function(Z)local Q,v=86678+-86677,Z[654051-654050]while v do p[v],Q=p[v]-(492780+-492779),Q+(-970122+970123)if p[v]==21794-21794 then p[v],s[v]=nil,nil end v=Z[Q]end end,{},function(Z)for Q=-965439+965440,#Z,-428079+428080 do p[Z[Q]]=(203787-203786)+p[Z[Q]]end if k then local v=k(true)local W=y(v)W[Q(684765+-638415)],W[Q(193474-147143)],W[Q(-454694+501035)]=Z,b,function()return-1783098-483352 end return v else return t({},{[Q(-960273-(-1006604))]=b;[Q(-624266+670616)]=Z,[Q(-92404-(-138745))]=function()return 62937+-2329387 end})end end,function(Z,Q)local W=j(Q)local k=function(k,t,y,z,K)return v(Z,{k,t,y,z,K},Q,W)end return k end,function(Z,Q)local W=j(Q)local k=function(...)return v(Z,{...},Q,W)end return k end,function(Z)p[Z]=p[Z]-(496968+-496967)if p[Z]==201099-201099 then p[Z],s[Z]=nil,nil end end,function()S=(546982+-546981)+S p[S]=-34099+34100 return S end,function(Z,Q)local W=j(Q)local k=function(k,t)return v(Z,{k,t},Q,W)end return k end,-751161-(-751161)return(T(-574124+11245699,{}))(W(K))end)(getfenv and getfenv()or _ENV,unpack or table[Q(998310+-951966)],newproxy,setmetatable,getmetatable,select,{...})end)(...)
+local WhylostEven={}
+WhylostEven.__index=WhylostEven
+
+local Players=game:GetService("Players")
+local LP=Players.LocalPlayer
+local PlayerGui=LP:WaitForChild("PlayerGui")
+local UIS=game:GetService("UserInputService")
+
+function WhylostEven.new(config)
+	local self=setmetatable({},WhylostEven)
+	config=config or {}
+
+	local Gui=Instance.new("ScreenGui")
+	Gui.Name="WhylostEvenUI"
+	Gui.ResetOnSpawn=false
+	Gui.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
+	Gui.Parent=PlayerGui
+
+	local Main=Instance.new("Frame",Gui)
+	Main.Size=UDim2.new(0,520,0,45)
+	Main.Position=UDim2.new(0.5,-260,0.5,-150)
+	Main.BackgroundColor3=Color3.fromRGB(15,15,15)
+	Main.BorderSizePixel=0
+	Main.Active=true
+	Main.ClipsDescendants=true
+	Instance.new("UICorner",Main).CornerRadius=UDim.new(0,6)
+
+	local MainStroke=Instance.new("UIStroke",Main)
+	MainStroke.Color=config.BorderColor or Color3.fromRGB(255,30,30)
+	MainStroke.Thickness=3
+	MainStroke.Transparency=0
+	MainStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+
+	local BG=Instance.new("ImageLabel",Main)
+	BG.Size=UDim2.new(1,0,1,0)
+	BG.Position=UDim2.new(0,0,0,0)
+	BG.Image=config.Image or ""
+	BG.BackgroundTransparency=1
+	BG.ImageTransparency=0.4
+	BG.ScaleType=Enum.ScaleType.Crop
+	BG.ZIndex=1
+
+	local Overlay=Instance.new("Frame",Main)
+	Overlay.Size=UDim2.new(1,0,1,0)
+	Overlay.BackgroundColor3=Color3.fromRGB(10,10,10)
+	Overlay.BackgroundTransparency=0.5
+	Overlay.BorderSizePixel=0
+	Overlay.ZIndex=2
+
+	local Top=Instance.new("Frame",Main)
+	Top.Size=UDim2.new(1,0,0,45)
+	Top.BackgroundColor3=Color3.fromRGB(20,20,20)
+	Top.BackgroundTransparency=0.2
+	Top.BorderSizePixel=0
+	Top.Active=true
+	Top.ZIndex=3
+	Instance.new("UICorner",Top).CornerRadius=UDim.new(0,6)
+
+	local dragging=false
+	local dragStart
+	local startPos
+
+	Top.InputBegan:Connect(function(i)
+		if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+			dragging=true
+			dragStart=i.Position
+			startPos=Main.Position
+			i.Changed:Connect(function()
+				if i.UserInputState==Enum.UserInputState.End then
+					dragging=false
+				end
+			end)
+		end
+	end)
+
+	UIS.InputChanged:Connect(function(i)
+		if dragging and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
+			local delta=i.Position-dragStart
+			Main.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+delta.X,startPos.Y.Scale,startPos.Y.Offset+delta.Y)
+		end
+	end)
+
+	local Title=Instance.new("TextLabel",Top)
+	Title.Size=UDim2.new(1,0,1,0)
+	Title.Position=UDim2.new(0,0,0,0)
+	Title.Text=config.Title or "WhylostEven UI"
+	Title.Font=Enum.Font.Code
+	Title.TextSize=18
+	Title.TextColor3=Color3.fromRGB(255,255,255)
+	Title.BackgroundTransparency=1
+	Title.TextXAlignment=Enum.TextXAlignment.Center
+	Title.ZIndex=4
+
+	local Minimize=Instance.new("TextButton",Top)
+	Minimize.Size=UDim2.new(0,30,0,30)
+	Minimize.Position=UDim2.new(1,-70,0.5,-15)
+	Minimize.Text="-"
+	Minimize.Font=Enum.Font.Code
+	Minimize.TextSize=18
+	Minimize.TextColor3=Color3.new(1,1,1)
+	Minimize.BackgroundColor3=Color3.fromRGB(40,40,40)
+	Minimize.BorderSizePixel=0
+	Minimize.ZIndex=4
+	Instance.new("UICorner",Minimize).CornerRadius=UDim.new(1,0)
+
+	local Close=Instance.new("TextButton",Top)
+	Close.Size=UDim2.new(0,30,0,30)
+	Close.Position=UDim2.new(1,-35,0.5,-15)
+	Close.Text="X"
+	Close.Font=Enum.Font.Code
+	Close.TextSize=14
+	Close.TextColor3=Color3.new(1,1,1)
+	Close.BackgroundColor3=Color3.fromRGB(120,30,30)
+	Close.BorderSizePixel=0
+	Close.ZIndex=4
+	Instance.new("UICorner",Close).CornerRadius=UDim.new(1,0)
+
+	local TabBar=Instance.new("Frame",Main)
+	TabBar.Size=UDim2.new(1,0,0,36)
+	TabBar.Position=UDim2.new(0,0,0,45)
+	TabBar.BackgroundTransparency=1
+	TabBar.BorderSizePixel=0
+	TabBar.ZIndex=3
+
+	local TabBarLayout=Instance.new("UIListLayout",TabBar)
+	TabBarLayout.FillDirection=Enum.FillDirection.Horizontal
+	TabBarLayout.Padding=UDim.new(0,6)
+
+	local TabBarPad=Instance.new("UIPadding",TabBar)
+	TabBarPad.PaddingLeft=UDim.new(0,8)
+	TabBarPad.PaddingTop=UDim.new(0,6)
+
+	self._main=Main
+	self._tabBar=TabBar
+	self._tabs={}
+	self._gui=Gui
+	self._accentColor=config.AccentColor or Color3.fromRGB(255,30,30)
+	self._MAX_HEIGHT=300
+	self._isMinimized=false
+	self._currentTab=nil
+
+	local function refreshSize()
+		if self._currentTab and not self._isMinimized then
+			local h=self._currentTab.Layout.AbsoluteContentSize.Y
+			local clampedH=math.min(h,self._MAX_HEIGHT)
+			self._currentTab.Content.Size=UDim2.new(1,-16,0,clampedH+15)
+			self._currentTab.Content.CanvasSize=UDim2.new(0,0,0,h+20)
+			Main.Size=UDim2.new(0,520,0,clampedH+105)
+		end
+	end
+
+	self._refreshSize=refreshSize
+
+	Minimize.MouseButton1Click:Connect(function()
+		self._isMinimized=not self._isMinimized
+		TabBar.Visible=not self._isMinimized
+		if self._currentTab then
+			self._currentTab.Content.Visible=not self._isMinimized
+		end
+		if self._isMinimized then
+			Main.Size=UDim2.new(0,520,0,45)
+		else
+			refreshSize()
+		end
+	end)
+
+	Close.MouseButton1Click:Connect(function()
+		Gui:Destroy()
+	end)
+
+	return self
+end
+
+function WhylostEven:NewTab(name)
+	local tabBtn=Instance.new("TextButton",self._tabBar)
+	tabBtn.Size=UDim2.new(0,80,0,26)
+	tabBtn.BackgroundColor3=Color3.fromRGB(35,35,35)
+	tabBtn.BackgroundTransparency=0.6
+	tabBtn.BorderSizePixel=0
+	tabBtn.Text=name
+	tabBtn.Font=Enum.Font.Code
+	tabBtn.TextSize=13
+	tabBtn.TextColor3=Color3.fromRGB(200,200,200)
+	tabBtn.ZIndex=4
+	Instance.new("UICorner",tabBtn).CornerRadius=UDim.new(0,8)
+
+	local tabContent=Instance.new("ScrollingFrame",self._main)
+	tabContent.Position=UDim2.new(0,8,0,88)
+	tabContent.Size=UDim2.new(1,-16,0,100)
+	tabContent.BackgroundTransparency=1
+	tabContent.BorderSizePixel=0
+	tabContent.ScrollBarThickness=4
+	tabContent.ScrollBarImageColor3=self._accentColor
+	tabContent.ScrollBarImageTransparency=0.5
+	tabContent.ScrollingDirection=Enum.ScrollingDirection.Y
+	tabContent.Active=true
+	tabContent.Selectable=true
+	tabContent.ZIndex=3
+	tabContent.Visible=false
+
+	local tabLayout=Instance.new("UIListLayout",tabContent)
+	tabLayout.Padding=UDim.new(0,6)
+
+	local tabPad=Instance.new("UIPadding",tabContent)
+	tabPad.PaddingTop=UDim.new(0,6)
+	tabPad.PaddingBottom=UDim.new(0,6)
+	tabPad.PaddingLeft=UDim.new(0,2)
+	tabPad.PaddingRight=UDim.new(0,2)
+
+	local tab={
+		Content=tabContent,
+		Layout=tabLayout,
+		Button=tabBtn,
+		Name=name
+	}
+
+	table.insert(self._tabs,tab)
+
+	local selfRef=self
+
+	local function selectTab()
+		for _,t in pairs(selfRef._tabs) do
+			t.Content.Visible=false
+			t.Button.TextColor3=Color3.fromRGB(200,200,200)
+			t.Button.BackgroundTransparency=0.6
+		end
+		tabContent.Visible=true
+		tabBtn.TextColor3=Color3.fromRGB(255,255,255)
+		tabBtn.BackgroundTransparency=0.1
+		selfRef._currentTab=tab
+
+		tabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+			if selfRef._currentTab==tab and not selfRef._isMinimized then
+				selfRef._refreshSize()
+			end
+		end)
+		selfRef._refreshSize()
+	end
+
+	tabBtn.MouseButton1Click:Connect(selectTab)
+
+	if #self._tabs==1 then
+		selectTab()
+	end
+
+	local accent=self._accentColor
+	local main=self._main
+
+	local tabObj={}
+	tabObj._content=tabContent
+	tabObj._accent=accent
+	tabObj._main=main
+
+	function tabObj:AddToggle(text,callback)
+		local Frame=Instance.new("Frame",self._content)
+		Frame.Size=UDim2.new(1,-4,0,36)
+		Frame.BackgroundColor3=Color3.fromRGB(35,35,35)
+		Frame.BackgroundTransparency=0.3
+		Frame.BorderSizePixel=0
+		Frame.ZIndex=4
+		Instance.new("UICorner",Frame).CornerRadius=UDim.new(0,8)
+
+		local Txt=Instance.new("TextLabel",Frame)
+		Txt.Size=UDim2.new(1,-70,1,0)
+		Txt.Position=UDim2.new(0,12,0,0)
+		Txt.Text=text
+		Txt.Font=Enum.Font.Code
+		Txt.TextSize=14
+		Txt.TextColor3=Color3.fromRGB(220,220,220)
+		Txt.BackgroundTransparency=1
+		Txt.TextXAlignment=Enum.TextXAlignment.Left
+		Txt.ZIndex=5
+
+		local Btn=Instance.new("TextButton",Frame)
+		Btn.Size=UDim2.new(0,42,0,22)
+		Btn.Position=UDim2.new(1,-54,0.5,-11)
+		Btn.BackgroundColor3=Color3.fromRGB(60,60,60)
+		Btn.BorderSizePixel=0
+		Btn.Text=""
+		Btn.ZIndex=5
+		Instance.new("UICorner",Btn).CornerRadius=UDim.new(1,0)
+
+		local Circle=Instance.new("Frame",Btn)
+		Circle.Size=UDim2.new(0,18,0,18)
+		Circle.Position=UDim2.new(0,2,0.5,-9)
+		Circle.BackgroundColor3=Color3.fromRGB(200,200,200)
+		Circle.BorderSizePixel=0
+		Circle.ZIndex=6
+		Instance.new("UICorner",Circle).CornerRadius=UDim.new(1,0)
+
+		local state=false
+		Btn.MouseButton1Click:Connect(function()
+			state=not state
+			if state then
+				Btn.BackgroundColor3=self._accent
+				Circle.BackgroundColor3=Color3.fromRGB(255,255,255)
+				Circle.Position=UDim2.new(1,-20,0.5,-9)
+			else
+				Btn.BackgroundColor3=Color3.fromRGB(60,60,60)
+				Circle.BackgroundColor3=Color3.fromRGB(200,200,200)
+				Circle.Position=UDim2.new(0,2,0.5,-9)
+			end
+			if callback then callback(state) end
+		end)
+	end
+
+	function tabObj:AddButton(text,callback)
+		local Frame=Instance.new("Frame",self._content)
+		Frame.Size=UDim2.new(1,-4,0,36)
+		Frame.BackgroundColor3=Color3.fromRGB(35,35,35)
+		Frame.BackgroundTransparency=0.3
+		Frame.BorderSizePixel=0
+		Frame.ZIndex=4
+		Instance.new("UICorner",Frame).CornerRadius=UDim.new(0,8)
+
+		local Txt=Instance.new("TextLabel",Frame)
+		Txt.Size=UDim2.new(1,0,1,0)
+		Txt.Text=text
+		Txt.Font=Enum.Font.Code
+		Txt.TextSize=14
+		Txt.TextColor3=Color3.fromRGB(220,220,220)
+		Txt.BackgroundTransparency=1
+		Txt.TextXAlignment=Enum.TextXAlignment.Center
+		Txt.ZIndex=5
+
+		local Btn=Instance.new("TextButton",Frame)
+		Btn.Size=UDim2.new(1,0,1,0)
+		Btn.BackgroundTransparency=1
+		Btn.Text=""
+		Btn.ZIndex=5
+		Btn.MouseButton1Click:Connect(function()
+			if callback then callback() end
+		end)
+	end
+
+	function tabObj:AddInput(text,placeholder,callback)
+		local Frame=Instance.new("Frame",self._content)
+		Frame.Size=UDim2.new(1,-4,0,58)
+		Frame.BackgroundColor3=Color3.fromRGB(35,35,35)
+		Frame.BackgroundTransparency=0.3
+		Frame.BorderSizePixel=0
+		Frame.ZIndex=4
+		Instance.new("UICorner",Frame).CornerRadius=UDim.new(0,8)
+
+		local Lbl=Instance.new("TextLabel",Frame)
+		Lbl.Size=UDim2.new(1,-10,0,22)
+		Lbl.Position=UDim2.new(0,12,0,5)
+		Lbl.Text=text
+		Lbl.Font=Enum.Font.Code
+		Lbl.TextSize=13
+		Lbl.TextColor3=Color3.fromRGB(180,180,180)
+		Lbl.BackgroundTransparency=1
+		Lbl.TextXAlignment=Enum.TextXAlignment.Left
+		Lbl.ZIndex=5
+
+		local Box=Instance.new("TextBox",Frame)
+		Box.Size=UDim2.new(1,-20,0,24)
+		Box.Position=UDim2.new(0,10,0,28)
+		Box.BackgroundColor3=Color3.fromRGB(25,25,25)
+		Box.BackgroundTransparency=0.2
+		Box.BorderSizePixel=0
+		Box.Font=Enum.Font.Code
+		Box.TextSize=13
+		Box.TextColor3=Color3.fromRGB(220,220,220)
+		Box.PlaceholderText=placeholder or ""
+		Box.PlaceholderColor3=Color3.fromRGB(100,100,100)
+		Box.Text=""
+		Box.ZIndex=5
+		Box.ClearTextOnFocus=false
+		Instance.new("UICorner",Box).CornerRadius=UDim.new(0,6)
+
+		Box.FocusLost:Connect(function(enter)
+			if enter and callback then
+				callback(Box.Text)
+			end
+		end)
+	end
+
+	function tabObj:AddSelect(text,options,callback)
+		local isOpen=false
+
+		local Wrapper=Instance.new("Frame",self._content)
+		Wrapper.Size=UDim2.new(1,-4,0,36)
+		Wrapper.BackgroundTransparency=1
+		Wrapper.BorderSizePixel=0
+		Wrapper.ZIndex=4
+		Wrapper.ClipsDescendants=false
+
+		local Header=Instance.new("Frame",Wrapper)
+		Header.Size=UDim2.new(1,0,0,36)
+		Header.BackgroundColor3=Color3.fromRGB(35,35,35)
+		Header.BackgroundTransparency=0.3
+		Header.BorderSizePixel=0
+		Header.ZIndex=4
+		Instance.new("UICorner",Header).CornerRadius=UDim.new(0,8)
+
+		local Lbl=Instance.new("TextLabel",Header)
+		Lbl.Size=UDim2.new(0.5,0,1,0)
+		Lbl.Position=UDim2.new(0,12,0,0)
+		Lbl.Text=text
+		Lbl.Font=Enum.Font.Code
+		Lbl.TextSize=14
+		Lbl.TextColor3=Color3.fromRGB(220,220,220)
+		Lbl.BackgroundTransparency=1
+		Lbl.TextXAlignment=Enum.TextXAlignment.Left
+		Lbl.ZIndex=5
+
+		local Selected=Instance.new("TextLabel",Header)
+		Selected.Size=UDim2.new(0.3,0,1,0)
+		Selected.Position=UDim2.new(0.5,0,0,0)
+		Selected.Text=options[1] or ""
+		Selected.Font=Enum.Font.Code
+		Selected.TextSize=13
+		Selected.TextColor3=self._accent
+		Selected.BackgroundTransparency=1
+		Selected.TextXAlignment=Enum.TextXAlignment.Right
+		Selected.ZIndex=5
+
+		local Arrow=Instance.new("TextLabel",Header)
+		Arrow.Size=UDim2.new(0,30,1,0)
+		Arrow.Position=UDim2.new(1,-32,0,0)
+		Arrow.Text="v"
+		Arrow.Font=Enum.Font.Code
+		Arrow.TextSize=14
+		Arrow.TextColor3=Color3.fromRGB(200,200,200)
+		Arrow.BackgroundTransparency=1
+		Arrow.TextXAlignment=Enum.TextXAlignment.Center
+		Arrow.ZIndex=5
+
+		local optionHeight=#options*32+8
+
+		local Dropdown=Instance.new("Frame",Wrapper)
+		Dropdown.Position=UDim2.new(0,0,0,40)
+		Dropdown.Size=UDim2.new(1,0,0,optionHeight)
+		Dropdown.BackgroundColor3=Color3.fromRGB(25,25,25)
+		Dropdown.BackgroundTransparency=0.1
+		Dropdown.BorderSizePixel=0
+		Dropdown.ZIndex=20
+		Dropdown.Visible=false
+		Instance.new("UICorner",Dropdown).CornerRadius=UDim.new(0,8)
+
+		local DLayout=Instance.new("UIListLayout",Dropdown)
+		DLayout.Padding=UDim.new(0,2)
+
+		local DPad=Instance.new("UIPadding",Dropdown)
+		DPad.PaddingTop=UDim.new(0,4)
+		DPad.PaddingBottom=UDim.new(0,4)
+		DPad.PaddingLeft=UDim.new(0,6)
+		DPad.PaddingRight=UDim.new(0,6)
+
+		for i,opt in ipairs(options) do
+			local OBtn=Instance.new("TextButton",Dropdown)
+			OBtn.Size=UDim2.new(1,0,0,28)
+			OBtn.BackgroundColor3=Color3.fromRGB(40,40,40)
+			OBtn.BackgroundTransparency=0.4
+			OBtn.BorderSizePixel=0
+			OBtn.Text=opt
+			OBtn.Font=Enum.Font.Code
+			OBtn.TextSize=13
+			OBtn.TextColor3=Color3.fromRGB(220,220,220)
+			OBtn.TextXAlignment=Enum.TextXAlignment.Left
+			OBtn.ZIndex=21
+			Instance.new("UICorner",OBtn).CornerRadius=UDim.new(0,6)
+
+			local OPad=Instance.new("UIPadding",OBtn)
+			OPad.PaddingLeft=UDim.new(0,10)
+
+			OBtn.MouseButton1Click:Connect(function()
+				Selected.Text=opt
+				isOpen=false
+				Dropdown.Visible=false
+				Arrow.Text="v"
+				Wrapper.Size=UDim2.new(1,-4,0,36)
+				if callback then callback(opt) end
+			end)
+		end
+
+		local HeaderBtn=Instance.new("TextButton",Header)
+		HeaderBtn.Size=UDim2.new(1,0,1,0)
+		HeaderBtn.BackgroundTransparency=1
+		HeaderBtn.Text=""
+		HeaderBtn.ZIndex=6
+		HeaderBtn.MouseButton1Click:Connect(function()
+			isOpen=not isOpen
+			Dropdown.Visible=isOpen
+			Arrow.Text=isOpen and "^" or "v"
+			Wrapper.Size=UDim2.new(1,-4,0,isOpen and 36+optionHeight+4 or 36)
+		end)
+	end
+
+	function tabObj:AddSelectToggle(text,options,callback)
+		local isOpen=false
+		local selected={}
+
+		local Wrapper=Instance.new("Frame",self._content)
+		Wrapper.Size=UDim2.new(1,-4,0,36)
+		Wrapper.BackgroundTransparency=1
+		Wrapper.BorderSizePixel=0
+		Wrapper.ZIndex=4
+		Wrapper.ClipsDescendants=false
+
+		local Header=Instance.new("Frame",Wrapper)
+		Header.Size=UDim2.new(1,0,0,36)
+		Header.BackgroundColor3=Color3.fromRGB(35,35,35)
+		Header.BackgroundTransparency=0.3
+		Header.BorderSizePixel=0
+		Header.ZIndex=4
+		Instance.new("UICorner",Header).CornerRadius=UDim.new(0,8)
+
+		local Lbl=Instance.new("TextLabel",Header)
+		Lbl.Size=UDim2.new(0.8,0,1,0)
+		Lbl.Position=UDim2.new(0,12,0,0)
+		Lbl.Text=text
+		Lbl.Font=Enum.Font.Code
+		Lbl.TextSize=14
+		Lbl.TextColor3=Color3.fromRGB(220,220,220)
+		Lbl.BackgroundTransparency=1
+		Lbl.TextXAlignment=Enum.TextXAlignment.Left
+		Lbl.ZIndex=5
+
+		local Arrow=Instance.new("TextLabel",Header)
+		Arrow.Size=UDim2.new(0,30,1,0)
+		Arrow.Position=UDim2.new(1,-32,0,0)
+		Arrow.Text="v"
+		Arrow.Font=Enum.Font.Code
+		Arrow.TextSize=14
+		Arrow.TextColor3=Color3.fromRGB(200,200,200)
+		Arrow.BackgroundTransparency=1
+		Arrow.TextXAlignment=Enum.TextXAlignment.Center
+		Arrow.ZIndex=5
+
+		local optionHeight=#options*34+8
+
+		local Dropdown=Instance.new("Frame",Wrapper)
+		Dropdown.Position=UDim2.new(0,0,0,40)
+		Dropdown.Size=UDim2.new(1,0,0,optionHeight)
+		Dropdown.BackgroundColor3=Color3.fromRGB(25,25,25)
+		Dropdown.BackgroundTransparency=0.1
+		Dropdown.BorderSizePixel=0
+		Dropdown.ZIndex=20
+		Dropdown.Visible=false
+		Instance.new("UICorner",Dropdown).CornerRadius=UDim.new(0,8)
+
+		local DLayout=Instance.new("UIListLayout",Dropdown)
+		DLayout.Padding=UDim.new(0,2)
+
+		local DPad=Instance.new("UIPadding",Dropdown)
+		DPad.PaddingTop=UDim.new(0,4)
+		DPad.PaddingBottom=UDim.new(0,4)
+		DPad.PaddingLeft=UDim.new(0,6)
+		DPad.PaddingRight=UDim.new(0,6)
+
+		for _,opt in ipairs(options) do
+			local Row=Instance.new("Frame",Dropdown)
+			Row.Size=UDim2.new(1,0,0,30)
+			Row.BackgroundColor3=Color3.fromRGB(40,40,40)
+			Row.BackgroundTransparency=0.4
+			Row.BorderSizePixel=0
+			Row.ZIndex=21
+			Instance.new("UICorner",Row).CornerRadius=UDim.new(0,6)
+
+			local Check=Instance.new("Frame",Row)
+			Check.Size=UDim2.new(0,18,0,18)
+			Check.Position=UDim2.new(0,8,0.5,-9)
+			Check.BackgroundColor3=Color3.fromRGB(50,50,50)
+			Check.BorderSizePixel=0
+			Check.ZIndex=22
+			Instance.new("UICorner",Check).CornerRadius=UDim.new(0,4)
+
+			local CheckMark=Instance.new("TextLabel",Check)
+			CheckMark.Size=UDim2.new(1,0,1,0)
+			CheckMark.Text="✓"
+			CheckMark.Font=Enum.Font.Code
+			CheckMark.TextSize=14
+			CheckMark.TextColor3=Color3.fromRGB(255,255,255)
+			CheckMark.BackgroundTransparency=1
+			CheckMark.Visible=false
+			CheckMark.ZIndex=23
+
+			local OptLbl=Instance.new("TextLabel",Row)
+			OptLbl.Size=UDim2.new(1,-36,1,0)
+			OptLbl.Position=UDim2.new(0,34,0,0)
+			OptLbl.Text=opt
+			OptLbl.Font=Enum.Font.Code
+			OptLbl.TextSize=13
+			OptLbl.TextColor3=Color3.fromRGB(220,220,220)
+			OptLbl.BackgroundTransparency=1
+			OptLbl.TextXAlignment=Enum.TextXAlignment.Left
+			OptLbl.ZIndex=22
+
+			local RowBtn=Instance.new("TextButton",Row)
+			RowBtn.Size=UDim2.new(1,0,1,0)
+			RowBtn.BackgroundTransparency=1
+			RowBtn.Text=""
+			RowBtn.ZIndex=23
+
+			local state=false
+			RowBtn.MouseButton1Click:Connect(function()
+				state=not state
+				CheckMark.Visible=state
+				Check.BackgroundColor3=state and self._accent or Color3.fromRGB(50,50,50)
+				selected[opt]=state
+				if callback then callback(opt,state,selected) end
+			end)
+		end
+
+		local HeaderBtn=Instance.new("TextButton",Header)
+		HeaderBtn.Size=UDim2.new(1,0,1,0)
+		HeaderBtn.BackgroundTransparency=1
+		HeaderBtn.Text=""
+		HeaderBtn.ZIndex=6
+		HeaderBtn.MouseButton1Click:Connect(function()
+			isOpen=not isOpen
+			Dropdown.Visible=isOpen
+			Arrow.Text=isOpen and "^" or "v"
+			Wrapper.Size=UDim2.new(1,-4,0,isOpen and 36+optionHeight+4 or 36)
+		end)
+	end
+
+	return tabObj
+end
+
+return WhylostEven
