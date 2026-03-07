@@ -123,11 +123,11 @@ function WhylostEven.new(config)
 	local Close=Instance.new("TextButton",Top)
 	Close.Size=UDim2.new(0,28,0,28)
 	Close.Position=UDim2.new(1,-34,0.5,-14)
-	Close.Text="X"
+	Close.Text=">"
 	Close.Font=Enum.Font.Code
 	Close.TextSize=13
 	Close.TextColor3=TEXT_WHITE
-	Close.BackgroundColor3=Color3.fromRGB(180,30,30)
+	Close.BackgroundColor3=Color3.fromRGB(50,50,50)
 	Close.BorderSizePixel=0
 	Close.ZIndex=4
 	Instance.new("UICorner",Close).CornerRadius=UDim.new(1,0)
