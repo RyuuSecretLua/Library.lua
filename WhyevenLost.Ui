@@ -5,6 +5,15 @@ local Players=game:GetService("Players")
 local LP=Players.LocalPlayer
 local PlayerGui=LP:WaitForChild("PlayerGui")
 local UIS=game:GetService("UserInputService")
+local TweenService=game:GetService("TweenService")
+
+local ACCENT=Color3.fromRGB(255,30,30)
+local BG_DARK=Color3.fromRGB(15,15,15)
+local BG_MID=Color3.fromRGB(25,25,25)
+local BG_ITEM=Color3.fromRGB(35,35,35)
+local TEXT_WHITE=Color3.fromRGB(220,220,220)
+local TEXT_DIM=Color3.fromRGB(150,150,150)
+local DEFAULT_IMAGE="rbxassetid://110941051056693"
 
 function WhylostEven.new(config)
 	local self=setmetatable({},WhylostEven)
@@ -19,42 +28,50 @@ function WhylostEven.new(config)
 	local Main=Instance.new("Frame",Gui)
 	Main.Size=UDim2.new(0,520,0,45)
 	Main.Position=UDim2.new(0.5,-260,0.5,-150)
-	Main.BackgroundColor3=Color3.fromRGB(15,15,15)
+	Main.BackgroundColor3=BG_DARK
 	Main.BorderSizePixel=0
 	Main.Active=true
 	Main.ClipsDescendants=true
-	Instance.new("UICorner",Main).CornerRadius=UDim.new(0,6)
+	Instance.new("UICorner",Main).CornerRadius=UDim.new(0,8)
 
 	local MainStroke=Instance.new("UIStroke",Main)
-	MainStroke.Color=config.BorderColor or Color3.fromRGB(255,30,30)
-	MainStroke.Thickness=3
+	MainStroke.Color=ACCENT
+	MainStroke.Thickness=2.5
 	MainStroke.Transparency=0
 	MainStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
 
 	local BG=Instance.new("ImageLabel",Main)
 	BG.Size=UDim2.new(1,0,1,0)
 	BG.Position=UDim2.new(0,0,0,0)
-	BG.Image=config.Image or ""
+	BG.Image=DEFAULT_IMAGE
 	BG.BackgroundTransparency=1
-	BG.ImageTransparency=0.4
+	BG.ImageTransparency=0.45
 	BG.ScaleType=Enum.ScaleType.Crop
 	BG.ZIndex=1
 
 	local Overlay=Instance.new("Frame",Main)
 	Overlay.Size=UDim2.new(1,0,1,0)
-	Overlay.BackgroundColor3=Color3.fromRGB(10,10,10)
-	Overlay.BackgroundTransparency=0.5
+	Overlay.BackgroundColor3=Color3.fromRGB(8,8,8)
+	Overlay.BackgroundTransparency=0.45
 	Overlay.BorderSizePixel=0
 	Overlay.ZIndex=2
 
 	local Top=Instance.new("Frame",Main)
 	Top.Size=UDim2.new(1,0,0,45)
-	Top.BackgroundColor3=Color3.fromRGB(20,20,20)
-	Top.BackgroundTransparency=0.2
+	Top.BackgroundColor3=Color3.fromRGB(18,18,18)
+	Top.BackgroundTransparency=0.1
 	Top.BorderSizePixel=0
 	Top.Active=true
 	Top.ZIndex=3
-	Instance.new("UICorner",Top).CornerRadius=UDim.new(0,6)
+	Instance.new("UICorner",Top).CornerRadius=UDim.new(0,8)
+
+	local TopFix=Instance.new("Frame",Top)
+	TopFix.Size=UDim2.new(1,0,0.5,0)
+	TopFix.Position=UDim2.new(0,0,0.5,0)
+	TopFix.BackgroundColor3=Color3.fromRGB(18,18,18)
+	TopFix.BackgroundTransparency=0.1
+	TopFix.BorderSizePixel=0
+	TopFix.ZIndex=3
 
 	local dragging=false
 	local dragStart
@@ -85,38 +102,38 @@ function WhylostEven.new(config)
 	Title.Position=UDim2.new(0,0,0,0)
 	Title.Text=config.Title or "WhylostEven UI"
 	Title.Font=Enum.Font.Code
-	Title.TextSize=18
-	Title.TextColor3=Color3.fromRGB(255,255,255)
+	Title.TextSize=17
+	Title.TextColor3=TEXT_WHITE
 	Title.BackgroundTransparency=1
 	Title.TextXAlignment=Enum.TextXAlignment.Center
 	Title.ZIndex=4
 
 	local Minimize=Instance.new("TextButton",Top)
-	Minimize.Size=UDim2.new(0,30,0,30)
-	Minimize.Position=UDim2.new(1,-70,0.5,-15)
+	Minimize.Size=UDim2.new(0,28,0,28)
+	Minimize.Position=UDim2.new(1,-66,0.5,-14)
 	Minimize.Text="-"
 	Minimize.Font=Enum.Font.Code
 	Minimize.TextSize=18
-	Minimize.TextColor3=Color3.new(1,1,1)
-	Minimize.BackgroundColor3=Color3.fromRGB(40,40,40)
+	Minimize.TextColor3=TEXT_WHITE
+	Minimize.BackgroundColor3=Color3.fromRGB(50,50,50)
 	Minimize.BorderSizePixel=0
 	Minimize.ZIndex=4
 	Instance.new("UICorner",Minimize).CornerRadius=UDim.new(1,0)
 
 	local Close=Instance.new("TextButton",Top)
-	Close.Size=UDim2.new(0,30,0,30)
-	Close.Position=UDim2.new(1,-35,0.5,-15)
+	Close.Size=UDim2.new(0,28,0,28)
+	Close.Position=UDim2.new(1,-34,0.5,-14)
 	Close.Text="X"
 	Close.Font=Enum.Font.Code
-	Close.TextSize=14
-	Close.TextColor3=Color3.new(1,1,1)
-	Close.BackgroundColor3=Color3.fromRGB(120,30,30)
+	Close.TextSize=13
+	Close.TextColor3=TEXT_WHITE
+	Close.BackgroundColor3=Color3.fromRGB(180,30,30)
 	Close.BorderSizePixel=0
 	Close.ZIndex=4
 	Instance.new("UICorner",Close).CornerRadius=UDim.new(1,0)
 
 	local TabBar=Instance.new("Frame",Main)
-	TabBar.Size=UDim2.new(1,0,0,36)
+	TabBar.Size=UDim2.new(1,0,0,34)
 	TabBar.Position=UDim2.new(0,0,0,45)
 	TabBar.BackgroundTransparency=1
 	TabBar.BorderSizePixel=0
@@ -124,17 +141,17 @@ function WhylostEven.new(config)
 
 	local TabBarLayout=Instance.new("UIListLayout",TabBar)
 	TabBarLayout.FillDirection=Enum.FillDirection.Horizontal
-	TabBarLayout.Padding=UDim.new(0,6)
+	TabBarLayout.Padding=UDim.new(0,5)
 
 	local TabBarPad=Instance.new("UIPadding",TabBar)
 	TabBarPad.PaddingLeft=UDim.new(0,8)
-	TabBarPad.PaddingTop=UDim.new(0,6)
+	TabBarPad.PaddingTop=UDim.new(0,5)
 
 	self._main=Main
 	self._tabBar=TabBar
 	self._tabs={}
 	self._gui=Gui
-	self._accentColor=config.AccentColor or Color3.fromRGB(255,30,30)
+	self._accentColor=ACCENT
 	self._MAX_HEIGHT=300
 	self._isMinimized=false
 	self._currentTab=nil
@@ -145,7 +162,7 @@ function WhylostEven.new(config)
 			local clampedH=math.min(h,self._MAX_HEIGHT)
 			self._currentTab.Content.Size=UDim2.new(1,-16,0,clampedH+15)
 			self._currentTab.Content.CanvasSize=UDim2.new(0,0,0,h+20)
-			Main.Size=UDim2.new(0,520,0,clampedH+105)
+			TweenService:Create(Main,TweenInfo.new(0.2),{Size=UDim2.new(0,520,0,clampedH+88)}):Play()
 		end
 	end
 
@@ -158,40 +175,105 @@ function WhylostEven.new(config)
 			self._currentTab.Content.Visible=not self._isMinimized
 		end
 		if self._isMinimized then
-			Main.Size=UDim2.new(0,520,0,45)
+			TweenService:Create(Main,TweenInfo.new(0.2),{Size=UDim2.new(0,520,0,45)}):Play()
 		else
 			refreshSize()
 		end
 	end)
 
 	Close.MouseButton1Click:Connect(function()
+		TweenService:Create(Main,TweenInfo.new(0.15),{Size=UDim2.new(0,0,0,0)}):Play()
+		task.wait(0.15)
 		Gui:Destroy()
 	end)
+
+	local NotifGui=Instance.new("Frame",Gui)
+	NotifGui.Size=UDim2.new(0,300,0,0)
+	NotifGui.Position=UDim2.new(1,-310,1,-10)
+	NotifGui.BackgroundTransparency=1
+	NotifGui.BorderSizePixel=0
+	NotifGui.ZIndex=100
+
+	local NotifLayout=Instance.new("UIListLayout",NotifGui)
+	NotifLayout.VerticalAlignment=Enum.VerticalAlignment.Bottom
+	NotifLayout.Padding=UDim.new(0,6)
+	NotifLayout.SortOrder=Enum.SortOrder.LayoutOrder
+
+	self._notifGui=NotifGui
+	self._notifLayout=NotifLayout
 
 	return self
 end
 
+function WhylostEven:Notify(title,text,duration)
+	duration=duration or 3
+
+	local NFrame=Instance.new("Frame",self._notifGui)
+	NFrame.Size=UDim2.new(1,0,0,0)
+	NFrame.BackgroundColor3=Color3.fromRGB(20,20,20)
+	NFrame.BackgroundTransparency=0.1
+	NFrame.BorderSizePixel=0
+	NFrame.ClipsDescendants=true
+	NFrame.ZIndex=100
+	Instance.new("UICorner",NFrame).CornerRadius=UDim.new(0,8)
+
+	local NStroke=Instance.new("UIStroke",NFrame)
+	NStroke.Color=ACCENT
+	NStroke.Thickness=2
+	NStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+
+	local NTitle=Instance.new("TextLabel",NFrame)
+	NTitle.Size=UDim2.new(1,-12,0,22)
+	NTitle.Position=UDim2.new(0,10,0,6)
+	NTitle.Text=title or "Notification"
+	NTitle.Font=Enum.Font.Code
+	NTitle.TextSize=14
+	NTitle.TextColor3=ACCENT
+	NTitle.BackgroundTransparency=1
+	NTitle.TextXAlignment=Enum.TextXAlignment.Left
+	NTitle.ZIndex=101
+
+	local NText=Instance.new("TextLabel",NFrame)
+	NText.Size=UDim2.new(1,-12,0,18)
+	NText.Position=UDim2.new(0,10,0,28)
+	NText.Text=text or ""
+	NText.Font=Enum.Font.Code
+	NText.TextSize=12
+	NText.TextColor3=TEXT_DIM
+	NText.BackgroundTransparency=1
+	NText.TextXAlignment=Enum.TextXAlignment.Left
+	NText.ZIndex=101
+
+	TweenService:Create(NFrame,TweenInfo.new(0.2),{Size=UDim2.new(1,0,0,56)}):Play()
+
+	task.delay(duration,function()
+		TweenService:Create(NFrame,TweenInfo.new(0.2),{Size=UDim2.new(1,0,0,0)}):Play()
+		task.wait(0.2)
+		NFrame:Destroy()
+	end)
+end
+
 function WhylostEven:NewTab(name)
 	local tabBtn=Instance.new("TextButton",self._tabBar)
-	tabBtn.Size=UDim2.new(0,80,0,26)
-	tabBtn.BackgroundColor3=Color3.fromRGB(35,35,35)
+	tabBtn.Size=UDim2.new(0,75,0,24)
+	tabBtn.BackgroundColor3=BG_ITEM
 	tabBtn.BackgroundTransparency=0.6
 	tabBtn.BorderSizePixel=0
 	tabBtn.Text=name
 	tabBtn.Font=Enum.Font.Code
 	tabBtn.TextSize=13
-	tabBtn.TextColor3=Color3.fromRGB(200,200,200)
+	tabBtn.TextColor3=TEXT_DIM
 	tabBtn.ZIndex=4
-	Instance.new("UICorner",tabBtn).CornerRadius=UDim.new(0,8)
+	Instance.new("UICorner",tabBtn).CornerRadius=UDim.new(0,6)
 
 	local tabContent=Instance.new("ScrollingFrame",self._main)
-	tabContent.Position=UDim2.new(0,8,0,88)
+	tabContent.Position=UDim2.new(0,8,0,86)
 	tabContent.Size=UDim2.new(1,-16,0,100)
 	tabContent.BackgroundTransparency=1
 	tabContent.BorderSizePixel=0
-	tabContent.ScrollBarThickness=4
-	tabContent.ScrollBarImageColor3=self._accentColor
-	tabContent.ScrollBarImageTransparency=0.5
+	tabContent.ScrollBarThickness=3
+	tabContent.ScrollBarImageColor3=ACCENT
+	tabContent.ScrollBarImageTransparency=0.4
 	tabContent.ScrollingDirection=Enum.ScrollingDirection.Y
 	tabContent.Active=true
 	tabContent.Selectable=true
@@ -199,13 +281,13 @@ function WhylostEven:NewTab(name)
 	tabContent.Visible=false
 
 	local tabLayout=Instance.new("UIListLayout",tabContent)
-	tabLayout.Padding=UDim.new(0,6)
+	tabLayout.Padding=UDim.new(0,5)
 
 	local tabPad=Instance.new("UIPadding",tabContent)
-	tabPad.PaddingTop=UDim.new(0,6)
+	tabPad.PaddingTop=UDim.new(0,4)
 	tabPad.PaddingBottom=UDim.new(0,6)
-	tabPad.PaddingLeft=UDim.new(0,2)
-	tabPad.PaddingRight=UDim.new(0,2)
+	tabPad.PaddingLeft=UDim.new(0,0)
+	tabPad.PaddingRight=UDim.new(0,0)
 
 	local tab={
 		Content=tabContent,
@@ -221,12 +303,12 @@ function WhylostEven:NewTab(name)
 	local function selectTab()
 		for _,t in pairs(selfRef._tabs) do
 			t.Content.Visible=false
-			t.Button.TextColor3=Color3.fromRGB(200,200,200)
+			t.Button.TextColor3=TEXT_DIM
 			t.Button.BackgroundTransparency=0.6
 		end
 		tabContent.Visible=true
-		tabBtn.TextColor3=Color3.fromRGB(255,255,255)
-		tabBtn.BackgroundTransparency=0.1
+		tabBtn.TextColor3=TEXT_WHITE
+		tabBtn.BackgroundTransparency=0.15
 		selfRef._currentTab=tab
 
 		tabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -244,18 +326,34 @@ function WhylostEven:NewTab(name)
 	end
 
 	local accent=self._accentColor
-	local main=self._main
-
 	local tabObj={}
 	tabObj._content=tabContent
 	tabObj._accent=accent
-	tabObj._main=main
+
+	function tabObj:AddLabel(text)
+		local Frame=Instance.new("Frame",self._content)
+		Frame.Size=UDim2.new(1,0,0,28)
+		Frame.BackgroundTransparency=1
+		Frame.BorderSizePixel=0
+		Frame.ZIndex=4
+
+		local Lbl=Instance.new("TextLabel",Frame)
+		Lbl.Size=UDim2.new(1,-12,1,0)
+		Lbl.Position=UDim2.new(0,10,0,0)
+		Lbl.Text=text
+		Lbl.Font=Enum.Font.Code
+		Lbl.TextSize=13
+		Lbl.TextColor3=TEXT_DIM
+		Lbl.BackgroundTransparency=1
+		Lbl.TextXAlignment=Enum.TextXAlignment.Left
+		Lbl.ZIndex=5
+	end
 
 	function tabObj:AddToggle(text,callback)
 		local Frame=Instance.new("Frame",self._content)
-		Frame.Size=UDim2.new(1,-4,0,36)
-		Frame.BackgroundColor3=Color3.fromRGB(35,35,35)
-		Frame.BackgroundTransparency=0.3
+		Frame.Size=UDim2.new(1,0,0,38)
+		Frame.BackgroundColor3=BG_ITEM
+		Frame.BackgroundTransparency=0.25
 		Frame.BorderSizePixel=0
 		Frame.ZIndex=4
 		Instance.new("UICorner",Frame).CornerRadius=UDim.new(0,8)
@@ -266,39 +364,37 @@ function WhylostEven:NewTab(name)
 		Txt.Text=text
 		Txt.Font=Enum.Font.Code
 		Txt.TextSize=14
-		Txt.TextColor3=Color3.fromRGB(220,220,220)
+		Txt.TextColor3=TEXT_WHITE
 		Txt.BackgroundTransparency=1
 		Txt.TextXAlignment=Enum.TextXAlignment.Left
 		Txt.ZIndex=5
 
-		local Btn=Instance.new("TextButton",Frame)
-		Btn.Size=UDim2.new(0,42,0,22)
-		Btn.Position=UDim2.new(1,-54,0.5,-11)
-		Btn.BackgroundColor3=Color3.fromRGB(60,60,60)
-		Btn.BorderSizePixel=0
-		Btn.Text=""
-		Btn.ZIndex=5
-		Instance.new("UICorner",Btn).CornerRadius=UDim.new(1,0)
+		local Track=Instance.new("TextButton",Frame)
+		Track.Size=UDim2.new(0,44,0,24)
+		Track.Position=UDim2.new(1,-56,0.5,-12)
+		Track.BackgroundColor3=Color3.fromRGB(55,55,55)
+		Track.BorderSizePixel=0
+		Track.Text=""
+		Track.ZIndex=5
+		Instance.new("UICorner",Track).CornerRadius=UDim.new(1,0)
 
-		local Circle=Instance.new("Frame",Btn)
+		local Circle=Instance.new("Frame",Track)
 		Circle.Size=UDim2.new(0,18,0,18)
-		Circle.Position=UDim2.new(0,2,0.5,-9)
-		Circle.BackgroundColor3=Color3.fromRGB(200,200,200)
+		Circle.Position=UDim2.new(0,3,0.5,-9)
+		Circle.BackgroundColor3=Color3.fromRGB(180,180,180)
 		Circle.BorderSizePixel=0
 		Circle.ZIndex=6
 		Instance.new("UICorner",Circle).CornerRadius=UDim.new(1,0)
 
 		local state=false
-		Btn.MouseButton1Click:Connect(function()
+		Track.MouseButton1Click:Connect(function()
 			state=not state
 			if state then
-				Btn.BackgroundColor3=self._accent
-				Circle.BackgroundColor3=Color3.fromRGB(255,255,255)
-				Circle.Position=UDim2.new(1,-20,0.5,-9)
+				TweenService:Create(Track,TweenInfo.new(0.15),{BackgroundColor3=self._accent}):Play()
+				TweenService:Create(Circle,TweenInfo.new(0.15),{Position=UDim2.new(1,-21,0.5,-9),BackgroundColor3=TEXT_WHITE}):Play()
 			else
-				Btn.BackgroundColor3=Color3.fromRGB(60,60,60)
-				Circle.BackgroundColor3=Color3.fromRGB(200,200,200)
-				Circle.Position=UDim2.new(0,2,0.5,-9)
+				TweenService:Create(Track,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(55,55,55)}):Play()
+				TweenService:Create(Circle,TweenInfo.new(0.15),{Position=UDim2.new(0,3,0.5,-9),BackgroundColor3=Color3.fromRGB(180,180,180)}):Play()
 			end
 			if callback then callback(state) end
 		end)
@@ -306,9 +402,9 @@ function WhylostEven:NewTab(name)
 
 	function tabObj:AddButton(text,callback)
 		local Frame=Instance.new("Frame",self._content)
-		Frame.Size=UDim2.new(1,-4,0,36)
-		Frame.BackgroundColor3=Color3.fromRGB(35,35,35)
-		Frame.BackgroundTransparency=0.3
+		Frame.Size=UDim2.new(1,0,0,38)
+		Frame.BackgroundColor3=BG_ITEM
+		Frame.BackgroundTransparency=0.25
 		Frame.BorderSizePixel=0
 		Frame.ZIndex=4
 		Instance.new("UICorner",Frame).CornerRadius=UDim.new(0,8)
@@ -318,7 +414,7 @@ function WhylostEven:NewTab(name)
 		Txt.Text=text
 		Txt.Font=Enum.Font.Code
 		Txt.TextSize=14
-		Txt.TextColor3=Color3.fromRGB(220,220,220)
+		Txt.TextColor3=TEXT_WHITE
 		Txt.BackgroundTransparency=1
 		Txt.TextXAlignment=Enum.TextXAlignment.Center
 		Txt.ZIndex=5
@@ -327,52 +423,53 @@ function WhylostEven:NewTab(name)
 		Btn.Size=UDim2.new(1,0,1,0)
 		Btn.BackgroundTransparency=1
 		Btn.Text=""
-		Btn.ZIndex=5
+		Btn.ZIndex=6
 		Btn.MouseButton1Click:Connect(function()
+			TweenService:Create(Frame,TweenInfo.new(0.05),{BackgroundTransparency=0.05}):Play()
+			task.wait(0.1)
+			TweenService:Create(Frame,TweenInfo.new(0.1),{BackgroundTransparency=0.25}):Play()
 			if callback then callback() end
 		end)
 	end
 
 	function tabObj:AddInput(text,placeholder,callback)
 		local Frame=Instance.new("Frame",self._content)
-		Frame.Size=UDim2.new(1,-4,0,58)
-		Frame.BackgroundColor3=Color3.fromRGB(35,35,35)
-		Frame.BackgroundTransparency=0.3
+		Frame.Size=UDim2.new(1,0,0,60)
+		Frame.BackgroundColor3=BG_ITEM
+		Frame.BackgroundTransparency=0.25
 		Frame.BorderSizePixel=0
 		Frame.ZIndex=4
 		Instance.new("UICorner",Frame).CornerRadius=UDim.new(0,8)
 
 		local Lbl=Instance.new("TextLabel",Frame)
-		Lbl.Size=UDim2.new(1,-10,0,22)
-		Lbl.Position=UDim2.new(0,12,0,5)
+		Lbl.Size=UDim2.new(1,-12,0,22)
+		Lbl.Position=UDim2.new(0,12,0,4)
 		Lbl.Text=text
 		Lbl.Font=Enum.Font.Code
 		Lbl.TextSize=13
-		Lbl.TextColor3=Color3.fromRGB(180,180,180)
+		Lbl.TextColor3=TEXT_DIM
 		Lbl.BackgroundTransparency=1
 		Lbl.TextXAlignment=Enum.TextXAlignment.Left
 		Lbl.ZIndex=5
 
 		local Box=Instance.new("TextBox",Frame)
-		Box.Size=UDim2.new(1,-20,0,24)
-		Box.Position=UDim2.new(0,10,0,28)
-		Box.BackgroundColor3=Color3.fromRGB(25,25,25)
-		Box.BackgroundTransparency=0.2
+		Box.Size=UDim2.new(1,-16,0,24)
+		Box.Position=UDim2.new(0,8,0,30)
+		Box.BackgroundColor3=BG_MID
+		Box.BackgroundTransparency=0.15
 		Box.BorderSizePixel=0
 		Box.Font=Enum.Font.Code
 		Box.TextSize=13
-		Box.TextColor3=Color3.fromRGB(220,220,220)
+		Box.TextColor3=TEXT_WHITE
 		Box.PlaceholderText=placeholder or ""
-		Box.PlaceholderColor3=Color3.fromRGB(100,100,100)
+		Box.PlaceholderColor3=Color3.fromRGB(90,90,90)
 		Box.Text=""
 		Box.ZIndex=5
 		Box.ClearTextOnFocus=false
 		Instance.new("UICorner",Box).CornerRadius=UDim.new(0,6)
 
 		Box.FocusLost:Connect(function(enter)
-			if enter and callback then
-				callback(Box.Text)
-			end
+			if enter and callback then callback(Box.Text) end
 		end)
 	end
 
@@ -380,34 +477,34 @@ function WhylostEven:NewTab(name)
 		local isOpen=false
 
 		local Wrapper=Instance.new("Frame",self._content)
-		Wrapper.Size=UDim2.new(1,-4,0,36)
+		Wrapper.Size=UDim2.new(1,0,0,38)
 		Wrapper.BackgroundTransparency=1
 		Wrapper.BorderSizePixel=0
 		Wrapper.ZIndex=4
 		Wrapper.ClipsDescendants=false
 
 		local Header=Instance.new("Frame",Wrapper)
-		Header.Size=UDim2.new(1,0,0,36)
-		Header.BackgroundColor3=Color3.fromRGB(35,35,35)
-		Header.BackgroundTransparency=0.3
+		Header.Size=UDim2.new(1,0,0,38)
+		Header.BackgroundColor3=BG_ITEM
+		Header.BackgroundTransparency=0.25
 		Header.BorderSizePixel=0
 		Header.ZIndex=4
 		Instance.new("UICorner",Header).CornerRadius=UDim.new(0,8)
 
 		local Lbl=Instance.new("TextLabel",Header)
-		Lbl.Size=UDim2.new(0.5,0,1,0)
+		Lbl.Size=UDim2.new(0.45,0,1,0)
 		Lbl.Position=UDim2.new(0,12,0,0)
 		Lbl.Text=text
 		Lbl.Font=Enum.Font.Code
 		Lbl.TextSize=14
-		Lbl.TextColor3=Color3.fromRGB(220,220,220)
+		Lbl.TextColor3=TEXT_WHITE
 		Lbl.BackgroundTransparency=1
 		Lbl.TextXAlignment=Enum.TextXAlignment.Left
 		Lbl.ZIndex=5
 
 		local Selected=Instance.new("TextLabel",Header)
-		Selected.Size=UDim2.new(0.3,0,1,0)
-		Selected.Position=UDim2.new(0.5,0,0,0)
+		Selected.Size=UDim2.new(0.35,0,1,0)
+		Selected.Position=UDim2.new(0.45,0,0,0)
 		Selected.Text=options[1] or ""
 		Selected.Font=Enum.Font.Code
 		Selected.TextSize=13
@@ -417,47 +514,53 @@ function WhylostEven:NewTab(name)
 		Selected.ZIndex=5
 
 		local Arrow=Instance.new("TextLabel",Header)
-		Arrow.Size=UDim2.new(0,30,1,0)
-		Arrow.Position=UDim2.new(1,-32,0,0)
+		Arrow.Size=UDim2.new(0,28,1,0)
+		Arrow.Position=UDim2.new(1,-30,0,0)
 		Arrow.Text="v"
 		Arrow.Font=Enum.Font.Code
-		Arrow.TextSize=14
-		Arrow.TextColor3=Color3.fromRGB(200,200,200)
+		Arrow.TextSize=13
+		Arrow.TextColor3=TEXT_DIM
 		Arrow.BackgroundTransparency=1
 		Arrow.TextXAlignment=Enum.TextXAlignment.Center
 		Arrow.ZIndex=5
 
-		local optionHeight=#options*32+8
+		local optionHeight=#options*30+10
 
 		local Dropdown=Instance.new("Frame",Wrapper)
-		Dropdown.Position=UDim2.new(0,0,0,40)
+		Dropdown.Position=UDim2.new(0,0,0,42)
 		Dropdown.Size=UDim2.new(1,0,0,optionHeight)
-		Dropdown.BackgroundColor3=Color3.fromRGB(25,25,25)
-		Dropdown.BackgroundTransparency=0.1
+		Dropdown.BackgroundColor3=Color3.fromRGB(20,20,20)
+		Dropdown.BackgroundTransparency=0.05
 		Dropdown.BorderSizePixel=0
 		Dropdown.ZIndex=20
 		Dropdown.Visible=false
 		Instance.new("UICorner",Dropdown).CornerRadius=UDim.new(0,8)
 
+		local DStroke=Instance.new("UIStroke",Dropdown)
+		DStroke.Color=ACCENT
+		DStroke.Thickness=1.5
+		DStroke.Transparency=0.5
+		DStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+
 		local DLayout=Instance.new("UIListLayout",Dropdown)
 		DLayout.Padding=UDim.new(0,2)
 
 		local DPad=Instance.new("UIPadding",Dropdown)
-		DPad.PaddingTop=UDim.new(0,4)
-		DPad.PaddingBottom=UDim.new(0,4)
+		DPad.PaddingTop=UDim.new(0,5)
+		DPad.PaddingBottom=UDim.new(0,5)
 		DPad.PaddingLeft=UDim.new(0,6)
 		DPad.PaddingRight=UDim.new(0,6)
 
-		for i,opt in ipairs(options) do
+		for _,opt in ipairs(options) do
 			local OBtn=Instance.new("TextButton",Dropdown)
-			OBtn.Size=UDim2.new(1,0,0,28)
+			OBtn.Size=UDim2.new(1,0,0,26)
 			OBtn.BackgroundColor3=Color3.fromRGB(40,40,40)
 			OBtn.BackgroundTransparency=0.4
 			OBtn.BorderSizePixel=0
 			OBtn.Text=opt
 			OBtn.Font=Enum.Font.Code
 			OBtn.TextSize=13
-			OBtn.TextColor3=Color3.fromRGB(220,220,220)
+			OBtn.TextColor3=TEXT_WHITE
 			OBtn.TextXAlignment=Enum.TextXAlignment.Left
 			OBtn.ZIndex=21
 			Instance.new("UICorner",OBtn).CornerRadius=UDim.new(0,6)
@@ -470,7 +573,7 @@ function WhylostEven:NewTab(name)
 				isOpen=false
 				Dropdown.Visible=false
 				Arrow.Text="v"
-				Wrapper.Size=UDim2.new(1,-4,0,36)
+				Wrapper.Size=UDim2.new(1,0,0,38)
 				if callback then callback(opt) end
 			end)
 		end
@@ -484,7 +587,7 @@ function WhylostEven:NewTab(name)
 			isOpen=not isOpen
 			Dropdown.Visible=isOpen
 			Arrow.Text=isOpen and "^" or "v"
-			Wrapper.Size=UDim2.new(1,-4,0,isOpen and 36+optionHeight+4 or 36)
+			Wrapper.Size=UDim2.new(1,0,0,isOpen and 38+optionHeight+4 or 38)
 		end)
 	end
 
@@ -493,16 +596,16 @@ function WhylostEven:NewTab(name)
 		local selected={}
 
 		local Wrapper=Instance.new("Frame",self._content)
-		Wrapper.Size=UDim2.new(1,-4,0,36)
+		Wrapper.Size=UDim2.new(1,0,0,38)
 		Wrapper.BackgroundTransparency=1
 		Wrapper.BorderSizePixel=0
 		Wrapper.ZIndex=4
 		Wrapper.ClipsDescendants=false
 
 		local Header=Instance.new("Frame",Wrapper)
-		Header.Size=UDim2.new(1,0,0,36)
-		Header.BackgroundColor3=Color3.fromRGB(35,35,35)
-		Header.BackgroundTransparency=0.3
+		Header.Size=UDim2.new(1,0,0,38)
+		Header.BackgroundColor3=BG_ITEM
+		Header.BackgroundTransparency=0.25
 		Header.BorderSizePixel=0
 		Header.ZIndex=4
 		Instance.new("UICorner",Header).CornerRadius=UDim.new(0,8)
@@ -513,46 +616,52 @@ function WhylostEven:NewTab(name)
 		Lbl.Text=text
 		Lbl.Font=Enum.Font.Code
 		Lbl.TextSize=14
-		Lbl.TextColor3=Color3.fromRGB(220,220,220)
+		Lbl.TextColor3=TEXT_WHITE
 		Lbl.BackgroundTransparency=1
 		Lbl.TextXAlignment=Enum.TextXAlignment.Left
 		Lbl.ZIndex=5
 
 		local Arrow=Instance.new("TextLabel",Header)
-		Arrow.Size=UDim2.new(0,30,1,0)
-		Arrow.Position=UDim2.new(1,-32,0,0)
+		Arrow.Size=UDim2.new(0,28,1,0)
+		Arrow.Position=UDim2.new(1,-30,0,0)
 		Arrow.Text="v"
 		Arrow.Font=Enum.Font.Code
-		Arrow.TextSize=14
-		Arrow.TextColor3=Color3.fromRGB(200,200,200)
+		Arrow.TextSize=13
+		Arrow.TextColor3=TEXT_DIM
 		Arrow.BackgroundTransparency=1
 		Arrow.TextXAlignment=Enum.TextXAlignment.Center
 		Arrow.ZIndex=5
 
-		local optionHeight=#options*34+8
+		local optionHeight=#options*32+10
 
 		local Dropdown=Instance.new("Frame",Wrapper)
-		Dropdown.Position=UDim2.new(0,0,0,40)
+		Dropdown.Position=UDim2.new(0,0,0,42)
 		Dropdown.Size=UDim2.new(1,0,0,optionHeight)
-		Dropdown.BackgroundColor3=Color3.fromRGB(25,25,25)
-		Dropdown.BackgroundTransparency=0.1
+		Dropdown.BackgroundColor3=Color3.fromRGB(20,20,20)
+		Dropdown.BackgroundTransparency=0.05
 		Dropdown.BorderSizePixel=0
 		Dropdown.ZIndex=20
 		Dropdown.Visible=false
 		Instance.new("UICorner",Dropdown).CornerRadius=UDim.new(0,8)
 
+		local DStroke=Instance.new("UIStroke",Dropdown)
+		DStroke.Color=ACCENT
+		DStroke.Thickness=1.5
+		DStroke.Transparency=0.5
+		DStroke.ApplyStrokeMode=Enum.ApplyStrokeMode.Border
+
 		local DLayout=Instance.new("UIListLayout",Dropdown)
 		DLayout.Padding=UDim.new(0,2)
 
 		local DPad=Instance.new("UIPadding",Dropdown)
-		DPad.PaddingTop=UDim.new(0,4)
-		DPad.PaddingBottom=UDim.new(0,4)
+		DPad.PaddingTop=UDim.new(0,5)
+		DPad.PaddingBottom=UDim.new(0,5)
 		DPad.PaddingLeft=UDim.new(0,6)
 		DPad.PaddingRight=UDim.new(0,6)
 
 		for _,opt in ipairs(options) do
 			local Row=Instance.new("Frame",Dropdown)
-			Row.Size=UDim2.new(1,0,0,30)
+			Row.Size=UDim2.new(1,0,0,28)
 			Row.BackgroundColor3=Color3.fromRGB(40,40,40)
 			Row.BackgroundTransparency=0.4
 			Row.BorderSizePixel=0
@@ -560,8 +669,8 @@ function WhylostEven:NewTab(name)
 			Instance.new("UICorner",Row).CornerRadius=UDim.new(0,6)
 
 			local Check=Instance.new("Frame",Row)
-			Check.Size=UDim2.new(0,18,0,18)
-			Check.Position=UDim2.new(0,8,0.5,-9)
+			Check.Size=UDim2.new(0,16,0,16)
+			Check.Position=UDim2.new(0,8,0.5,-8)
 			Check.BackgroundColor3=Color3.fromRGB(50,50,50)
 			Check.BorderSizePixel=0
 			Check.ZIndex=22
@@ -571,19 +680,19 @@ function WhylostEven:NewTab(name)
 			CheckMark.Size=UDim2.new(1,0,1,0)
 			CheckMark.Text="✓"
 			CheckMark.Font=Enum.Font.Code
-			CheckMark.TextSize=14
-			CheckMark.TextColor3=Color3.fromRGB(255,255,255)
+			CheckMark.TextSize=12
+			CheckMark.TextColor3=TEXT_WHITE
 			CheckMark.BackgroundTransparency=1
 			CheckMark.Visible=false
 			CheckMark.ZIndex=23
 
 			local OptLbl=Instance.new("TextLabel",Row)
-			OptLbl.Size=UDim2.new(1,-36,1,0)
-			OptLbl.Position=UDim2.new(0,34,0,0)
+			OptLbl.Size=UDim2.new(1,-34,1,0)
+			OptLbl.Position=UDim2.new(0,32,0,0)
 			OptLbl.Text=opt
 			OptLbl.Font=Enum.Font.Code
 			OptLbl.TextSize=13
-			OptLbl.TextColor3=Color3.fromRGB(220,220,220)
+			OptLbl.TextColor3=TEXT_WHITE
 			OptLbl.BackgroundTransparency=1
 			OptLbl.TextXAlignment=Enum.TextXAlignment.Left
 			OptLbl.ZIndex=22
@@ -598,7 +707,7 @@ function WhylostEven:NewTab(name)
 			RowBtn.MouseButton1Click:Connect(function()
 				state=not state
 				CheckMark.Visible=state
-				Check.BackgroundColor3=state and self._accent or Color3.fromRGB(50,50,50)
+				TweenService:Create(Check,TweenInfo.new(0.1),{BackgroundColor3=state and self._accent or Color3.fromRGB(50,50,50)}):Play()
 				selected[opt]=state
 				if callback then callback(opt,state,selected) end
 			end)
@@ -613,7 +722,7 @@ function WhylostEven:NewTab(name)
 			isOpen=not isOpen
 			Dropdown.Visible=isOpen
 			Arrow.Text=isOpen and "^" or "v"
-			Wrapper.Size=UDim2.new(1,-4,0,isOpen and 36+optionHeight+4 or 36)
+			Wrapper.Size=UDim2.new(1,0,0,isOpen and 38+optionHeight+4 or 38)
 		end)
 	end
 
