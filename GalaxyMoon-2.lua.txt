@@ -1,0 +1,545 @@
+local GalaxyMoon = {}
+GalaxyMoon.__index = GalaxyMoon
+
+local TweenService = game:GetService("TweenService")
+local UIS = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+
+local COL_ACCENT     = Color3.fromRGB(210, 90, 255)
+local COL_ACCENT2    = Color3.fromRGB(180, 0, 255)
+local COL_BG         = Color3.fromRGB(12, 12, 15)
+local COL_BG2        = Color3.fromRGB(20, 20, 28)
+local COL_BG3        = Color3.fromRGB(22, 18, 35)
+local COL_WHITE      = Color3.new(1, 1, 1)
+local COL_PURPLE_DIM = Color3.fromRGB(60, 0, 100)
+
+local dragTarget, dragStart, dragStartPos = nil, nil, nil
+
+UIS.InputChanged:Connect(function(i)
+	if not dragTarget then return end
+	if i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch then
+		local delta = i.Position - dragStart
+		dragTarget.Position = UDim2.new(
+			dragStartPos.X.Scale, dragStartPos.X.Offset + delta.X,
+			dragStartPos.Y.Scale, dragStartPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+UIS.InputEnded:Connect(function(i)
+	if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+		dragTarget = nil
+	end
+end)
+
+local function makeDraggable(handle, target)
+	handle.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+			dragTarget = target
+			dragStart = i.Position
+			dragStartPos = target.Position
+		end
+	end)
+end
+
+local function typewrite(label, text, speed)
+	speed = speed or 0.04
+	label.Text = ""
+	task.spawn(function()
+		for i = 1, #text do
+			if not label or not label.Parent then break end
+			label.Text = string.sub(text, 1, i)
+			task.wait(speed)
+		end
+	end)
+end
+
+local function setCorner(instance, radius)
+	local existing = instance:FindFirstChildOfClass("UICorner")
+	if existing then existing:Destroy() end
+	local c = Instance.new("UICorner", instance)
+	c.CornerRadius = UDim.new(0, radius)
+	return c
+end
+
+local function mkFrame(parent, color, size, pos, radius)
+	local f = Instance.new("Frame", parent)
+	f.Size = size
+	f.Position = pos or UDim2.new(0, 0, 0, 0)
+	f.BackgroundColor3 = color
+	f.BorderSizePixel = 0
+	setCorner(f, radius or 11)
+	return f
+end
+
+local function innerFrame(border, bg, radius)
+	local f = Instance.new("Frame", border)
+	f.Size = UDim2.new(1, -2, 1, -2)
+	f.Position = UDim2.new(0, 1, 0, 1)
+	f.BackgroundColor3 = bg or COL_BG3
+	f.BorderSizePixel = 0
+	setCorner(f, radius or 10)
+	return f
+end
+
+function GalaxyMoon.new(config)
+	local self = setmetatable({}, GalaxyMoon)
+
+	local name     = config.Name   or "GalaxyMoon"
+	local W        = config.Width  or 320
+	local FULL_H   = config.Height or 280
+	local MIN_H    = 44
+	local BORDER   = 3
+	local IMAGE_ID = config.Icon or ""
+	local ANIM     = config.AnimText ~= false
+
+	if lp.PlayerGui:FindFirstChild("GalaxyMoon_" .. name) then
+		lp.PlayerGui["GalaxyMoon_" .. name]:Destroy()
+	end
+
+	local gui = Instance.new("ScreenGui", lp.PlayerGui)
+	gui.Name = "GalaxyMoon_" .. name
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = 10
+	self.gui = gui
+	self._animText = ANIM
+	self._name = name
+	self._W = W
+	self._BORDER = BORDER
+	self._FULL_H = FULL_H
+	self._MIN_H = MIN_H
+
+	local circleBorder = mkFrame(gui, COL_ACCENT,
+		UDim2.new(0, 59, 0, 59),
+		UDim2.new(0, 20, 0.5, -30), 100)
+	circleBorder.Active = true
+
+	local circleBtn = Instance.new("TextButton", circleBorder)
+	circleBtn.Size = UDim2.new(1, -4, 1, -4)
+	circleBtn.Position = UDim2.new(0, 2, 0, 2)
+	circleBtn.Text = ""
+	circleBtn.BackgroundColor3 = Color3.fromRGB(12, 12, 20)
+	circleBtn.BorderSizePixel = 0
+	setCorner(circleBtn, 100)
+
+	if IMAGE_ID ~= "" then
+		local img = Instance.new("ImageLabel", circleBtn)
+		img.Size = UDim2.new(0.8, 0, 0.8, 0)
+		img.Position = UDim2.new(0.1, 0, 0.1, 0)
+		img.Image = IMAGE_ID
+		img.BackgroundTransparency = 1
+	else
+		local moon = Instance.new("TextLabel", circleBtn)
+		moon.Size = UDim2.new(1, 0, 1, 0)
+		moon.Text = "☽"
+		moon.Font = Enum.Font.GothamBold
+		moon.TextSize = 22
+		moon.TextColor3 = COL_ACCENT
+		moon.BackgroundTransparency = 1
+	end
+
+	makeDraggable(circleBorder, circleBorder)
+
+	local borderFrame = mkFrame(gui, COL_ACCENT,
+		UDim2.new(0, W + BORDER * 2, 0, FULL_H + BORDER * 2),
+		UDim2.new(0.5, -(W / 2 + BORDER), 0.5, -(FULL_H / 2 + BORDER)), 16)
+	borderFrame.Active = true
+	borderFrame.Visible = false
+	self.borderFrame = borderFrame
+
+	local main = Instance.new("Frame", borderFrame)
+	main.Size = UDim2.new(1, -BORDER * 2, 1, -BORDER * 2)
+	main.Position = UDim2.new(0, BORDER, 0, BORDER)
+	main.BackgroundColor3 = COL_BG
+	main.BorderSizePixel = 0
+	main.ClipsDescendants = true
+	setCorner(main, 14)
+	self._main = main
+
+	local topBar = Instance.new("Frame", main)
+	topBar.Size = UDim2.new(1, 0, 0, 40)
+	topBar.BackgroundColor3 = COL_BG2
+	topBar.BorderSizePixel = 0
+	setCorner(topBar, 0)
+	makeDraggable(topBar, borderFrame)
+
+	local titleLabel = Instance.new("TextLabel", topBar)
+	titleLabel.Size = UDim2.new(1, -80, 1, 0)
+	titleLabel.Position = UDim2.new(0, 15, 0, 0)
+	titleLabel.Text = ""
+	titleLabel.Font = Enum.Font.Arcade
+	titleLabel.TextColor3 = COL_WHITE
+	titleLabel.TextSize = 14
+	titleLabel.BackgroundTransparency = 1
+	titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+	self.titleLabel = titleLabel
+
+	local minBtn = Instance.new("TextButton", topBar)
+	minBtn.Size = UDim2.new(0, 35, 0, 35)
+	minBtn.Position = UDim2.new(1, -40, 0, 2.5)
+	minBtn.Text = "-"
+	minBtn.Font = Enum.Font.GothamBold
+	minBtn.TextColor3 = COL_WHITE
+	minBtn.BackgroundTransparency = 1
+	minBtn.TextSize = 25
+
+	local tabBar = Instance.new("Frame", main)
+	tabBar.Size = UDim2.new(1, 0, 0, 28)
+	tabBar.Position = UDim2.new(0, 0, 0, 42)
+	tabBar.BackgroundTransparency = 1
+	local tabLayout = Instance.new("UIListLayout", tabBar)
+	tabLayout.FillDirection = Enum.FillDirection.Horizontal
+	tabLayout.Padding = UDim.new(0, 5)
+	tabLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+	tabLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	local tabPad = Instance.new("UIPadding", tabBar)
+	tabPad.PaddingLeft = UDim.new(0, 10)
+	self.tabBar = tabBar
+
+	local contentArea = Instance.new("Frame", main)
+	contentArea.Size = UDim2.new(1, 0, 1, -72)
+	contentArea.Position = UDim2.new(0, 0, 0, 72)
+	contentArea.BackgroundTransparency = 1
+	self.contentArea = contentArea
+
+	self.tabs = {}
+	self.tabBtns = {}
+	self.tabFrames = {}
+	self.activeTab = nil
+
+	local isMin = false
+	minBtn.MouseButton1Click:Connect(function()
+		isMin = not isMin
+		minBtn.Text = isMin and "+" or "-"
+		contentArea.Visible = not isMin
+		tabBar.Visible = not isMin
+
+		if isMin then
+			setCorner(borderFrame, 100)
+			setCorner(main, 100)
+			TweenService:Create(borderFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart), {
+				Size = UDim2.new(0, MIN_H + BORDER * 2, 0, MIN_H + BORDER * 2)
+			}):Play()
+		else
+			TweenService:Create(borderFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart), {
+				Size = UDim2.new(0, W + BORDER * 2, 0, FULL_H + BORDER * 2)
+			}):Play()
+			task.delay(0.4, function()
+				setCorner(borderFrame, 16)
+				setCorner(main, 14)
+			end)
+		end
+	end)
+
+	circleBtn.MouseButton1Click:Connect(function()
+		borderFrame.Visible = not borderFrame.Visible
+		if borderFrame.Visible then
+			if ANIM then
+				typewrite(titleLabel, name)
+			else
+				titleLabel.Text = name
+			end
+		end
+	end)
+
+	if ANIM then
+		typewrite(titleLabel, name)
+	else
+		titleLabel.Text = name
+	end
+
+	task.delay(0.3, function()
+		borderFrame.Visible = true
+	end)
+
+	return self
+end
+
+function GalaxyMoon:CreateTab(tabName)
+	local ANIM = self._animText
+
+	local tabBtn = Instance.new("TextButton", self.tabBar)
+	tabBtn.Size = UDim2.new(0, 80, 0, 22)
+	tabBtn.Text = tabName
+	tabBtn.Font = Enum.Font.Arcade
+	tabBtn.TextSize = 10
+	tabBtn.TextColor3 = COL_WHITE
+	tabBtn.BackgroundColor3 = (#self.tabs == 0) and COL_ACCENT2 or Color3.fromRGB(30, 30, 40)
+	tabBtn.BorderSizePixel = 0
+	setCorner(tabBtn, 6)
+	self.tabBtns[tabName] = tabBtn
+
+	local scroll = Instance.new("ScrollingFrame", self.contentArea)
+	scroll.Size = UDim2.new(1, 0, 1, 0)
+	scroll.BackgroundTransparency = 1
+	scroll.BorderSizePixel = 0
+	scroll.ScrollBarThickness = 3
+	scroll.ScrollBarImageColor3 = COL_ACCENT
+	scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	scroll.Visible = #self.tabs == 0
+	self.tabFrames[tabName] = scroll
+
+	local layout = Instance.new("UIListLayout", scroll)
+	layout.Padding = UDim.new(0, 8)
+	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	local pad = Instance.new("UIPadding", scroll)
+	pad.PaddingTop = UDim.new(0, 8)
+	pad.PaddingBottom = UDim.new(0, 8)
+
+	if #self.tabs == 0 then self.activeTab = tabName end
+	table.insert(self.tabs, tabName)
+
+	tabBtn.MouseButton1Click:Connect(function()
+		for _, tn in ipairs(self.tabs) do
+			self.tabFrames[tn].Visible = tn == tabName
+			TweenService:Create(self.tabBtns[tn], TweenInfo.new(0.2), {
+				BackgroundColor3 = tn == tabName and COL_ACCENT2 or Color3.fromRGB(30, 30, 40)
+			}):Play()
+		end
+		self.activeTab = tabName
+	end)
+
+	local Tab = {}
+
+	function Tab:AddButton(config)
+		local bBorder = mkFrame(scroll, COL_ACCENT2,
+			UDim2.new(0.88, 0, 0, 38),
+			UDim2.new(0.06, 0, 0, 0), 11)
+
+		local btn = Instance.new("TextButton", bBorder)
+		btn.Size = UDim2.new(1, -2, 1, -2)
+		btn.Position = UDim2.new(0, 1, 0, 1)
+		btn.Font = Enum.Font.Arcade
+		btn.TextSize = 11
+		btn.TextColor3 = COL_WHITE
+		btn.BackgroundColor3 = Color3.fromRGB(30, 18, 55)
+		btn.BorderSizePixel = 0
+		setCorner(btn, 10)
+
+		if ANIM then
+			btn.Text = ""
+			typewrite(btn, config.Name or "Button", config.AnimSpeed)
+		else
+			btn.Text = config.Name or "Button"
+		end
+
+		btn.MouseButton1Click:Connect(function()
+			TweenService:Create(btn, TweenInfo.new(0.1), { BackgroundColor3 = COL_ACCENT }):Play()
+			task.delay(0.15, function()
+				TweenService:Create(btn, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(30, 18, 55) }):Play()
+			end)
+			if config.Callback then config.Callback() end
+		end)
+
+		return btn
+	end
+
+	function Tab:AddToggle(config)
+		local state = config.Default or false
+		local displayName = config.Name or "Toggle"
+
+		local tBorder = mkFrame(scroll, COL_ACCENT2,
+			UDim2.new(0.88, 0, 0, 38),
+			UDim2.new(0.06, 0, 0, 0), 11)
+
+		local inner = innerFrame(tBorder, state and COL_BG3 or COL_PURPLE_DIM, 10)
+
+		local label = Instance.new("TextLabel", inner)
+		label.Size = UDim2.new(1, 0, 1, 0)
+		label.Font = Enum.Font.Arcade
+		label.TextSize = 11
+		label.TextColor3 = COL_WHITE
+		label.BackgroundTransparency = 1
+		label.TextXAlignment = Enum.TextXAlignment.Center
+
+		local function update()
+			local txt = displayName .. " : " .. (state and "ON" or "OFF")
+			if ANIM then
+				typewrite(label, txt, config.AnimSpeed)
+			else
+				label.Text = txt
+			end
+			TweenService:Create(inner, TweenInfo.new(0.15), {
+				BackgroundColor3 = state and COL_BG3 or COL_PURPLE_DIM
+			}):Play()
+		end
+
+		update()
+
+		inner.InputBegan:Connect(function(i)
+			if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+				state = not state
+				update()
+				if config.Callback then config.Callback(state) end
+			end
+		end)
+
+		return {
+			Set = function(_, val)
+				state = val
+				update()
+			end,
+			Get = function() return state end
+		}
+	end
+
+	function Tab:AddDropdown(config)
+		local options = config.Options or {}
+		local selected = config.Default or options[1] or "Select"
+		local open = false
+		local optH = 30
+		local displayName = config.Name or "Dropdown"
+
+		local wrapper = Instance.new("Frame", scroll)
+		wrapper.Size = UDim2.new(0.88, 0, 0, 38)
+		wrapper.BackgroundTransparency = 1
+		wrapper.BorderSizePixel = 0
+		wrapper.ClipsDescendants = false
+
+		local dBorder = Instance.new("Frame", wrapper)
+		dBorder.Size = UDim2.new(1, 0, 0, 38)
+		dBorder.BackgroundColor3 = COL_ACCENT2
+		dBorder.BorderSizePixel = 0
+		setCorner(dBorder, 11)
+
+		local dInner = innerFrame(dBorder, Color3.fromRGB(30, 18, 55), 10)
+
+		local dLabel = Instance.new("TextLabel", dInner)
+		dLabel.Size = UDim2.new(0.82, 0, 1, 0)
+		dLabel.Position = UDim2.new(0, 10, 0, 0)
+		dLabel.Font = Enum.Font.Arcade
+		dLabel.TextSize = 11
+		dLabel.TextColor3 = COL_WHITE
+		dLabel.BackgroundTransparency = 1
+		dLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+		if ANIM then
+			dLabel.Text = ""
+			typewrite(dLabel, displayName .. ": " .. selected, config.AnimSpeed)
+		else
+			dLabel.Text = displayName .. ": " .. selected
+		end
+
+		local arrow = Instance.new("TextLabel", dInner)
+		arrow.Size = UDim2.new(0, 20, 1, 0)
+		arrow.Position = UDim2.new(1, -25, 0, 0)
+		arrow.Text = "▼"
+		arrow.Font = Enum.Font.GothamBold
+		arrow.TextSize = 10
+		arrow.TextColor3 = COL_WHITE
+		arrow.BackgroundTransparency = 1
+
+		local dropList = Instance.new("Frame", wrapper)
+		dropList.Position = UDim2.new(0, 1, 0, 40)
+		dropList.Size = UDim2.new(1, -2, 0, #options * optH)
+		dropList.BackgroundColor3 = Color3.fromRGB(18, 14, 30)
+		dropList.BorderSizePixel = 0
+		dropList.Visible = false
+		dropList.ZIndex = 5
+		setCorner(dropList, 8)
+
+		for idx, opt in ipairs(options) do
+			local optBtn = Instance.new("TextButton", dropList)
+			optBtn.Size = UDim2.new(1, 0, 0, optH)
+			optBtn.Position = UDim2.new(0, 0, 0, (idx - 1) * optH)
+			optBtn.Text = opt
+			optBtn.Font = Enum.Font.Arcade
+			optBtn.TextSize = 10
+			optBtn.TextColor3 = COL_WHITE
+			optBtn.BackgroundTransparency = 1
+			optBtn.ZIndex = 6
+
+			optBtn.MouseButton1Click:Connect(function()
+				selected = opt
+				dLabel.Text = displayName .. ": " .. selected
+				open = false
+				dropList.Visible = false
+				arrow.Text = "▼"
+				if config.Callback then config.Callback(selected) end
+			end)
+
+			optBtn.MouseEnter:Connect(function()
+				optBtn.BackgroundColor3 = COL_ACCENT2
+				TweenService:Create(optBtn, TweenInfo.new(0.1), { BackgroundTransparency = 0.6 }):Play()
+			end)
+
+			optBtn.MouseLeave:Connect(function()
+				TweenService:Create(optBtn, TweenInfo.new(0.1), { BackgroundTransparency = 1 }):Play()
+			end)
+		end
+
+		dInner.InputBegan:Connect(function(i)
+			if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+				open = not open
+				dropList.Visible = open
+				arrow.Text = open and "▲" or "▼"
+			end
+		end)
+
+		return {
+			Get = function() return selected end,
+			Set = function(_, val)
+				selected = val
+				dLabel.Text = displayName .. ": " .. selected
+			end
+		}
+	end
+
+	function Tab:AddInput(config)
+		local iBorder = mkFrame(scroll, COL_ACCENT2,
+			UDim2.new(0.88, 0, 0, 38),
+			UDim2.new(0.06, 0, 0, 0), 11)
+
+		local iInner = innerFrame(iBorder, Color3.fromRGB(18, 14, 30), 10)
+
+		local box = Instance.new("TextBox", iInner)
+		box.Size = UDim2.new(1, -16, 1, 0)
+		box.Position = UDim2.new(0, 8, 0, 0)
+		box.PlaceholderText = config.Placeholder or "Enter text..."
+		box.Text = config.Default or ""
+		box.Font = Enum.Font.Arcade
+		box.TextSize = 11
+		box.TextColor3 = COL_WHITE
+		box.PlaceholderColor3 = Color3.fromRGB(140, 140, 140)
+		box.BackgroundTransparency = 1
+		box.ClearTextOnFocus = false
+
+		box.FocusLost:Connect(function(enter)
+			if enter and config.Callback then
+				config.Callback(box.Text)
+			end
+		end)
+
+		return {
+			Get = function() return box.Text end,
+			Set = function(_, val) box.Text = val end
+		}
+	end
+
+	function Tab:AddLabel(config)
+		local text  = type(config) == "string" and config or (config.Text or "")
+		local speed = type(config) == "table" and (config.Speed or 0.04) or 0.04
+
+		local lbl = Instance.new("TextLabel", scroll)
+		lbl.Size = UDim2.new(0.88, 0, 0, 24)
+		lbl.Font = Enum.Font.Arcade
+		lbl.TextSize = 10
+		lbl.TextColor3 = COL_ACCENT
+		lbl.BackgroundTransparency = 1
+		lbl.TextXAlignment = Enum.TextXAlignment.Center
+
+		if ANIM then
+			typewrite(lbl, text, speed)
+		else
+			lbl.Text = text
+		end
+
+		return lbl
+	end
+
+	return Tab
+end
+
+return GalaxyMoon
