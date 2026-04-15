@@ -1,5 +1,5 @@
-local PpyUI={}
-PpyUI.__index=PpyUI
+local VeloraLib={}
+VeloraLib.__index=VeloraLib
 
 local TweenService=game:GetService("TweenService")
 local UIS=game:GetService("UserInputService")
@@ -15,11 +15,11 @@ local SUBTEXT=Color3.fromRGB(160,160,170)
 local BAR=Color3.fromRGB(22,22,30)
 local TOPBAR=Color3.fromRGB(20,20,28)
 
-function PpyUI.new(title)
-	local self=setmetatable({},PpyUI)
+function VeloraLib.new(title)
+	local self=setmetatable({},VeloraLib)
 
 	local Gui=Instance.new("ScreenGui")
-	Gui.Name="PpyUI_"..title
+	Gui.Name="VeloraLib_"..title
 	Gui.ResetOnSpawn=false
 	Gui.IgnoreGuiInset=true
 	Gui.Parent=PlayerGui
@@ -41,21 +41,13 @@ function PpyUI.new(title)
 	TopBar.BackgroundTransparency=0
 	TopBar.BorderSizePixel=0
 	TopBar.Active=true
-
-	local TopCorner=Instance.new("UICorner",TopBar)
-	TopCorner.CornerRadius=UDim.new(0,12)
+	Instance.new("UICorner",TopBar).CornerRadius=UDim.new(0,12)
 
 	local TopFix=Instance.new("Frame",TopBar)
 	TopFix.Size=UDim2.new(1,0,0,12)
 	TopFix.Position=UDim2.new(0,0,1,-12)
 	TopFix.BackgroundColor3=TOPBAR
 	TopFix.BorderSizePixel=0
-
-	local AccentLine=Instance.new("Frame",TopBar)
-	AccentLine.Size=UDim2.new(1,0,0,2)
-	AccentLine.Position=UDim2.new(0,0,1,-2)
-	AccentLine.BackgroundColor3=PURPLE
-	AccentLine.BorderSizePixel=0
 
 	local TitleLabel=Instance.new("TextLabel",TopBar)
 	TitleLabel.Size=UDim2.new(1,-44,1,0)
@@ -98,18 +90,11 @@ function PpyUI.new(title)
 	local TabBar=Instance.new("Frame",Main)
 	TabBar.Size=UDim2.new(1,-14,0,32)
 	TabBar.Position=UDim2.new(0,7,0,48)
-	TabBar.BackgroundColor3=BAR
-	TabBar.BackgroundTransparency=0
+	TabBar.BackgroundTransparency=1
 	TabBar.BorderSizePixel=0
-	Instance.new("UICorner",TabBar).CornerRadius=UDim.new(0,8)
-	local TBPad=Instance.new("UIPadding",TabBar)
-	TBPad.PaddingLeft=UDim.new(0,4)
-	TBPad.PaddingRight=UDim.new(0,4)
-	TBPad.PaddingTop=UDim.new(0,4)
-	TBPad.PaddingBottom=UDim.new(0,4)
 	local TBLayout=Instance.new("UIListLayout",TabBar)
 	TBLayout.FillDirection=Enum.FillDirection.Horizontal
-	TBLayout.Padding=UDim.new(0,4)
+	TBLayout.Padding=UDim.new(0,6)
 
 	local Pages=Instance.new("Frame",Main)
 	Pages.Position=UDim2.new(0,0,0,86)
@@ -119,6 +104,7 @@ function PpyUI.new(title)
 	self._main=Main
 	self._tabBar=TabBar
 	self._pagesFrame=Pages
+	self._tabBtns={}
 
 	local minimized=false
 	MinBtn.MouseButton1Click:Connect(function()
@@ -126,14 +112,11 @@ function PpyUI.new(title)
 		if minimized then
 			TabBar.Visible=false
 			Pages.Visible=false
-			AccentLine.Visible=false
 			TopFix.Visible=false
-			TopCorner.CornerRadius=UDim.new(0,12)
 			TweenService:Create(Main,TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(0,520,0,42)}):Play()
 		else
 			TweenService:Create(Main,TweenInfo.new(0.3,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Size=UDim2.new(0,520,0,340)}):Play()
 			task.wait(0.3)
-			AccentLine.Visible=true
 			TopFix.Visible=true
 			TabBar.Visible=true
 			Pages.Visible=true
@@ -143,7 +126,7 @@ function PpyUI.new(title)
 	return self
 end
 
-function PpyUI:AddTab(name)
+function VeloraLib:AddTab(name)
 	local page=Instance.new("ScrollingFrame",self._pagesFrame)
 	page.Name=name
 	page.Size=UDim2.new(1,0,1,0)
@@ -164,44 +147,35 @@ function PpyUI:AddTab(name)
 	pad.PaddingRight=UDim.new(0,10)
 
 	local tabBtn=Instance.new("TextButton",self._tabBar)
-	tabBtn.Size=UDim2.new(0,90,1,0)
+	tabBtn.Size=UDim2.new(0,88,1,0)
 	tabBtn.Text=name
 	tabBtn.BackgroundColor3=CARD
-	tabBtn.BackgroundTransparency=1
+	tabBtn.BackgroundTransparency=0.4
 	tabBtn.TextColor3=SUBTEXT
 	tabBtn.Font=Enum.Font.GothamBold
 	tabBtn.TextSize=13
 	tabBtn.BorderSizePixel=0
-	Instance.new("UICorner",tabBtn).CornerRadius=UDim.new(0,6)
-
-	local underline=Instance.new("Frame",tabBtn)
-	underline.Size=UDim2.new(0.7,0,0,2)
-	underline.Position=UDim2.new(0.15,0,1,-3)
-	underline.BackgroundColor3=PURPLE
-	underline.BorderSizePixel=0
-	underline.Visible=false
-	Instance.new("UICorner",underline).CornerRadius=UDim.new(1,0)
+	Instance.new("UICorner",tabBtn).CornerRadius=UDim.new(0,8)
 
 	local tabObj={}
 	tabObj._page=page
+
+	local allBtns=self._tabBtns
+	table.insert(allBtns,tabBtn)
 
 	local function activate()
 		for _,v in pairs(self._pagesFrame:GetChildren()) do
 			if v:IsA("ScrollingFrame") then v.Visible=false end
 		end
-		for _,b in pairs(self._tabBar:GetChildren()) do
-			if b:IsA("TextButton") then
-				b.BackgroundTransparency=1
-				b.TextColor3=SUBTEXT
-				for _,c in pairs(b:GetChildren()) do
-					if c:IsA("Frame") then c.Visible=false end
-				end
-			end
+		for _,b in pairs(allBtns) do
+			b.BackgroundColor3=CARD
+			b.BackgroundTransparency=0.4
+			b.TextColor3=SUBTEXT
 		end
 		page.Visible=true
-		tabBtn.BackgroundTransparency=0.7
+		tabBtn.BackgroundColor3=PURPLE
+		tabBtn.BackgroundTransparency=0
 		tabBtn.TextColor3=Color3.fromRGB(255,255,255)
-		underline.Visible=true
 	end
 
 	tabBtn.MouseButton1Click:Connect(activate)
@@ -239,6 +213,10 @@ function PpyUI:AddTab(name)
 		btn.TextColor3=TEXT
 		btn.TextXAlignment=Enum.TextXAlignment.Center
 		btn.MouseButton1Click:Connect(function()
+			TweenService:Create(f,TweenInfo.new(0.08),{BackgroundColor3=Color3.fromRGB(255,255,255)}):Play()
+			task.delay(0.08,function()
+				TweenService:Create(f,TweenInfo.new(0.15),{BackgroundColor3=CARD}):Play()
+			end)
 			if callback then callback() end
 		end)
 		return f
@@ -253,7 +231,7 @@ function PpyUI:AddTab(name)
 		Instance.new("UICorner",f).CornerRadius=UDim.new(0,10)
 
 		local lbl=Instance.new("TextLabel",f)
-		lbl.Size=UDim2.new(1,-70,1,0)
+		lbl.Size=UDim2.new(1,-60,1,0)
 		lbl.Position=UDim2.new(0,12,0,0)
 		lbl.BackgroundTransparency=1
 		lbl.Text=text
@@ -263,8 +241,8 @@ function PpyUI:AddTab(name)
 		lbl.TextXAlignment=Enum.TextXAlignment.Left
 
 		local track=Instance.new("TextButton",f)
-		track.Size=UDim2.new(0,52,0,26)
-		track.Position=UDim2.new(1,-62,0.5,-13)
+		track.Size=UDim2.new(0,44,0,22)
+		track.Position=UDim2.new(1,-54,0.5,-11)
 		track.BackgroundColor3=Color3.fromRGB(50,50,60)
 		track.BackgroundTransparency=0
 		track.BorderSizePixel=0
@@ -272,8 +250,8 @@ function PpyUI:AddTab(name)
 		Instance.new("UICorner",track).CornerRadius=UDim.new(1,0)
 
 		local circle=Instance.new("Frame",track)
-		circle.Size=UDim2.new(0,20,0,20)
-		circle.Position=UDim2.new(0,3,0.5,-10)
+		circle.Size=UDim2.new(0,16,0,16)
+		circle.Position=UDim2.new(0,3,0.5,-8)
 		circle.BackgroundColor3=Color3.fromRGB(180,180,190)
 		circle.BorderSizePixel=0
 		Instance.new("UICorner",circle).CornerRadius=UDim.new(1,0)
@@ -282,10 +260,10 @@ function PpyUI:AddTab(name)
 		local function applyState(s)
 			if s then
 				TweenService:Create(track,TweenInfo.new(0.18),{BackgroundColor3=PURPLE}):Play()
-				TweenService:Create(circle,TweenInfo.new(0.18),{Position=UDim2.new(1,-23,0.5,-10),BackgroundColor3=Color3.fromRGB(255,255,255)}):Play()
+				TweenService:Create(circle,TweenInfo.new(0.18),{Position=UDim2.new(1,-19,0.5,-8),BackgroundColor3=Color3.fromRGB(255,255,255)}):Play()
 			else
 				TweenService:Create(track,TweenInfo.new(0.18),{BackgroundColor3=Color3.fromRGB(50,50,60)}):Play()
-				TweenService:Create(circle,TweenInfo.new(0.18),{Position=UDim2.new(0,3,0.5,-10),BackgroundColor3=Color3.fromRGB(180,180,190)}):Play()
+				TweenService:Create(circle,TweenInfo.new(0.18),{Position=UDim2.new(0,3,0.5,-8),BackgroundColor3=Color3.fromRGB(180,180,190)}):Play()
 			end
 			if callback then callback(s) end
 		end
@@ -299,15 +277,15 @@ function PpyUI:AddTab(name)
 
 	function tabObj:CreateInput(text,placeholder,callback)
 		local f=Instance.new("Frame",page)
-		f.Size=UDim2.new(1,0,0,66)
+		f.Size=UDim2.new(1,0,0,42)
 		f.BackgroundColor3=CARD
 		f.BackgroundTransparency=0.3
 		f.BorderSizePixel=0
 		Instance.new("UICorner",f).CornerRadius=UDim.new(0,10)
 
 		local lbl=Instance.new("TextLabel",f)
-		lbl.Size=UDim2.new(1,-16,0,24)
-		lbl.Position=UDim2.new(0,12,0,4)
+		lbl.Size=UDim2.new(0.5,0,1,0)
+		lbl.Position=UDim2.new(0,12,0,0)
 		lbl.BackgroundTransparency=1
 		lbl.Text=text
 		lbl.Font=Enum.Font.GothamBold
@@ -316,8 +294,8 @@ function PpyUI:AddTab(name)
 		lbl.TextXAlignment=Enum.TextXAlignment.Left
 
 		local box=Instance.new("TextBox",f)
-		box.Size=UDim2.new(1,-16,0,26)
-		box.Position=UDim2.new(0,8,0,32)
+		box.Size=UDim2.new(0,140,0,28)
+		box.Position=UDim2.new(1,-148,0.5,-14)
 		box.BackgroundColor3=Color3.fromRGB(20,20,28)
 		box.BackgroundTransparency=0
 		box.BorderSizePixel=0
@@ -331,6 +309,7 @@ function PpyUI:AddTab(name)
 		Instance.new("UICorner",box).CornerRadius=UDim.new(0,6)
 		local bpad=Instance.new("UIPadding",box)
 		bpad.PaddingLeft=UDim.new(0,8)
+		bpad.PaddingRight=UDim.new(0,8)
 
 		box.FocusLost:Connect(function(enter)
 			if enter and callback then callback(box.Text) end
@@ -349,7 +328,7 @@ function PpyUI:AddTab(name)
 		Instance.new("UICorner",f).CornerRadius=UDim.new(0,10)
 
 		local lbl=Instance.new("TextLabel",f)
-		lbl.Size=UDim2.new(1,-120,1,0)
+		lbl.Size=UDim2.new(1,-150,1,0)
 		lbl.Position=UDim2.new(0,12,0,0)
 		lbl.BackgroundTransparency=1
 		lbl.Text=text
@@ -359,8 +338,8 @@ function PpyUI:AddTab(name)
 		lbl.TextXAlignment=Enum.TextXAlignment.Left
 
 		local selectedLbl=Instance.new("TextLabel",f)
-		selectedLbl.Size=UDim2.new(0,90,1,0)
-		selectedLbl.Position=UDim2.new(1,-110,0,0)
+		selectedLbl.Size=UDim2.new(0,100,1,0)
+		selectedLbl.Position=UDim2.new(1,-128,0,0)
 		selectedLbl.BackgroundTransparency=1
 		selectedLbl.Text=options[1] or ""
 		selectedLbl.Font=Enum.Font.Gotham
@@ -434,7 +413,7 @@ function PpyUI:AddTab(name)
 		Instance.new("UICorner",f).CornerRadius=UDim.new(0,10)
 
 		local lbl=Instance.new("TextLabel",f)
-		lbl.Size=UDim2.new(1,-120,1,0)
+		lbl.Size=UDim2.new(1,-150,1,0)
 		lbl.Position=UDim2.new(0,12,0,0)
 		lbl.BackgroundTransparency=1
 		lbl.Text=text
@@ -444,8 +423,8 @@ function PpyUI:AddTab(name)
 		lbl.TextXAlignment=Enum.TextXAlignment.Left
 
 		local countLbl=Instance.new("TextLabel",f)
-		countLbl.Size=UDim2.new(0,70,1,0)
-		countLbl.Position=UDim2.new(1,-98,0,0)
+		countLbl.Size=UDim2.new(0,100,1,0)
+		countLbl.Position=UDim2.new(1,-128,0,0)
 		countLbl.BackgroundTransparency=1
 		countLbl.Text="0 selected"
 		countLbl.Font=Enum.Font.Gotham
@@ -487,9 +466,20 @@ function PpyUI:AddTab(name)
 			item.BackgroundTransparency=1
 			item.ZIndex=10
 
+			local itemLbl=Instance.new("TextLabel",item)
+			itemLbl.Size=UDim2.new(1,-36,1,0)
+			itemLbl.Position=UDim2.new(0,12,0,0)
+			itemLbl.BackgroundTransparency=1
+			itemLbl.Text=opt
+			itemLbl.Font=Enum.Font.Gotham
+			itemLbl.TextSize=13
+			itemLbl.TextColor3=TEXT
+			itemLbl.TextXAlignment=Enum.TextXAlignment.Left
+			itemLbl.ZIndex=11
+
 			local checkBg=Instance.new("Frame",item)
 			checkBg.Size=UDim2.new(0,18,0,18)
-			checkBg.Position=UDim2.new(0,10,0.5,-9)
+			checkBg.Position=UDim2.new(1,-28,0.5,-9)
 			checkBg.BackgroundColor3=Color3.fromRGB(40,40,50)
 			checkBg.BorderSizePixel=0
 			checkBg.ZIndex=11
@@ -504,17 +494,6 @@ function PpyUI:AddTab(name)
 			checkMark.TextColor3=Color3.fromRGB(255,255,255)
 			checkMark.Visible=false
 			checkMark.ZIndex=12
-
-			local itemLbl=Instance.new("TextLabel",item)
-			itemLbl.Size=UDim2.new(1,-36,1,0)
-			itemLbl.Position=UDim2.new(0,36,0,0)
-			itemLbl.BackgroundTransparency=1
-			itemLbl.Text=opt
-			itemLbl.Font=Enum.Font.Gotham
-			itemLbl.TextSize=13
-			itemLbl.TextColor3=TEXT
-			itemLbl.TextXAlignment=Enum.TextXAlignment.Left
-			itemLbl.ZIndex=11
 
 			local btn2=Instance.new("TextButton",item)
 			btn2.Size=UDim2.new(1,0,1,0)
@@ -555,4 +534,4 @@ function PpyUI:AddTab(name)
 	return tabObj
 end
 
-return PpyUI
+return VeloraLib
