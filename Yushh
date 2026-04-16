@@ -37,7 +37,7 @@ function VeloraLib.new(title)
 	BgImage.Size=UDim2.new(1,0,1,0)
 	BgImage.Position=UDim2.new(0,0,0,0)
 	BgImage.BackgroundTransparency=1
-	BgImage.Image="rbxassetid://115173059467159"
+	BgImage.Image="rbxassetid://93892837821175"
 	BgImage.ScaleType=Enum.ScaleType.Crop
 	BgImage.ImageTransparency=0.3
 	BgImage.ZIndex=0
@@ -63,7 +63,7 @@ function VeloraLib.new(title)
 	LogoImg.Size=UDim2.new(0,28,0,28)
 	LogoImg.Position=UDim2.new(0,8,0.5,-14)
 	LogoImg.BackgroundTransparency=1
-	LogoImg.Image="rbxassetid://134559131858394"
+	LogoImg.Image="rbxassetid://134"
 	LogoImg.ScaleType=Enum.ScaleType.Fit
 	LogoImg.ZIndex=3
 
