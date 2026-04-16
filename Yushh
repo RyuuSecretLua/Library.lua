@@ -33,6 +33,15 @@ function VeloraLib.new(title)
 	Main.ClipsDescendants=true
 	Instance.new("UICorner",Main).CornerRadius=UDim.new(0,12)
 
+	local BgImage=Instance.new("ImageLabel",Main)
+	BgImage.Size=UDim2.new(1,0,1,0)
+	BgImage.Position=UDim2.new(0,0,0,0)
+	BgImage.BackgroundTransparency=1
+	BgImage.Image="rbxassetid://115173059467159"
+	BgImage.ScaleType=Enum.ScaleType.Crop
+	BgImage.ImageTransparency=0.3
+	BgImage.ZIndex=0
+
 	local TopBar=Instance.new("Frame",Main)
 	TopBar.Size=UDim2.new(1,0,0,42)
 	TopBar.Position=UDim2.new(0,0,0,0)
@@ -40,6 +49,7 @@ function VeloraLib.new(title)
 	TopBar.BackgroundTransparency=0
 	TopBar.BorderSizePixel=0
 	TopBar.Active=true
+	TopBar.ZIndex=2
 	Instance.new("UICorner",TopBar).CornerRadius=UDim.new(0,12)
 
 	local TopFix=Instance.new("Frame",TopBar)
@@ -47,6 +57,15 @@ function VeloraLib.new(title)
 	TopFix.Position=UDim2.new(0,0,1,-12)
 	TopFix.BackgroundColor3=TOPBAR
 	TopFix.BorderSizePixel=0
+	TopFix.ZIndex=2
+
+	local LogoImg=Instance.new("ImageLabel",TopBar)
+	LogoImg.Size=UDim2.new(0,28,0,28)
+	LogoImg.Position=UDim2.new(0,8,0.5,-14)
+	LogoImg.BackgroundTransparency=1
+	LogoImg.Image="rbxassetid://134559131858394"
+	LogoImg.ScaleType=Enum.ScaleType.Fit
+	LogoImg.ZIndex=3
 
 	local TitleLabel=Instance.new("TextLabel",TopBar)
 	TitleLabel.Size=UDim2.new(1,-44,1,0)
@@ -57,6 +76,7 @@ function VeloraLib.new(title)
 	TitleLabel.TextColor3=Color3.fromRGB(255,255,255)
 	TitleLabel.BackgroundTransparency=1
 	TitleLabel.TextXAlignment=Enum.TextXAlignment.Center
+	TitleLabel.ZIndex=3
 
 	local MinBtn=Instance.new("TextButton",TopBar)
 	MinBtn.Size=UDim2.new(0,32,0,32)
@@ -67,6 +87,7 @@ function VeloraLib.new(title)
 	MinBtn.TextColor3=Color3.fromRGB(255,255,255)
 	MinBtn.BackgroundTransparency=1
 	MinBtn.BorderSizePixel=0
+	MinBtn.ZIndex=3
 
 	local dragging,dragStart,startPos=false,nil,nil
 	TopBar.InputBegan:Connect(function(i)
@@ -87,18 +108,20 @@ function VeloraLib.new(title)
 	end)
 
 	local TabBar=Instance.new("Frame",Main)
-	TabBar.Size=UDim2.new(1,-14,0,32)
+	TabBar.Size=UDim2.new(1,-14,0,28)
 	TabBar.Position=UDim2.new(0,7,0,48)
 	TabBar.BackgroundTransparency=1
 	TabBar.BorderSizePixel=0
+	TabBar.ZIndex=2
 	local TBLayout=Instance.new("UIListLayout",TabBar)
 	TBLayout.FillDirection=Enum.FillDirection.Horizontal
 	TBLayout.Padding=UDim.new(0,6)
 
 	local Pages=Instance.new("Frame",Main)
-	Pages.Position=UDim2.new(0,0,0,86)
-	Pages.Size=UDim2.new(1,0,1,-92)
+	Pages.Position=UDim2.new(0,0,0,82)
+	Pages.Size=UDim2.new(1,0,1,-88)
 	Pages.BackgroundTransparency=1
+	Pages.ZIndex=2
 
 	self._main=Main
 	self._tabBar=TabBar
@@ -146,14 +169,15 @@ function VeloraLib:AddTab(name)
 	pad.PaddingRight=UDim.new(0,10)
 
 	local tabBtn=Instance.new("TextButton",self._tabBar)
-	tabBtn.Size=UDim2.new(0,88,1,0)
+	tabBtn.Size=UDim2.new(0,76,1,0)
 	tabBtn.Text=name
 	tabBtn.BackgroundColor3=Color3.fromRGB(28,28,36)
 	tabBtn.BackgroundTransparency=0.4
-	tabBtn.TextColor3=SUBTEXT
+	tabBtn.TextColor3=Color3.fromRGB(255,255,255)
 	tabBtn.Font=Enum.Font.GothamBold
-	tabBtn.TextSize=13
+	tabBtn.TextSize=12
 	tabBtn.BorderSizePixel=0
+	tabBtn.ZIndex=3
 	Instance.new("UICorner",tabBtn).CornerRadius=UDim.new(0,8)
 
 	local tabObj={}
@@ -169,7 +193,7 @@ function VeloraLib:AddTab(name)
 		for _,b in pairs(allBtns) do
 			b.BackgroundColor3=Color3.fromRGB(28,28,36)
 			b.BackgroundTransparency=0.4
-			b.TextColor3=SUBTEXT
+			b.TextColor3=Color3.fromRGB(255,255,255)
 		end
 		page.Visible=true
 		tabBtn.BackgroundColor3=PURPLE
@@ -490,7 +514,7 @@ function VeloraLib:AddTab(name)
 			local checkMark=Instance.new("TextLabel",checkBg)
 			checkMark.Size=UDim2.new(1,0,1,0)
 			checkMark.BackgroundTransparency=1
-			checkMark.Text="✓"
+			checkMark.Text="√"
 			checkMark.Font=Enum.Font.GothamBold
 			checkMark.TextSize=13
 			checkMark.TextColor3=Color3.fromRGB(255,255,255)
