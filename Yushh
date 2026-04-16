@@ -12,7 +12,6 @@ local BG=Color3.fromRGB(15,15,20)
 local CARD=Color3.fromRGB(28,28,36)
 local TEXT=Color3.fromRGB(225,225,225)
 local SUBTEXT=Color3.fromRGB(160,160,170)
-local BAR=Color3.fromRGB(22,22,30)
 local TOPBAR=Color3.fromRGB(20,20,28)
 
 function VeloraLib.new(title)
@@ -149,7 +148,7 @@ function VeloraLib:AddTab(name)
 	local tabBtn=Instance.new("TextButton",self._tabBar)
 	tabBtn.Size=UDim2.new(0,88,1,0)
 	tabBtn.Text=name
-	tabBtn.BackgroundColor3=CARD
+	tabBtn.BackgroundColor3=Color3.fromRGB(28,28,36)
 	tabBtn.BackgroundTransparency=0.4
 	tabBtn.TextColor3=SUBTEXT
 	tabBtn.Font=Enum.Font.GothamBold
@@ -168,11 +167,13 @@ function VeloraLib:AddTab(name)
 			if v:IsA("ScrollingFrame") then v.Visible=false end
 		end
 		for _,b in pairs(allBtns) do
-			b.BackgroundColor3=CARD
+			b.BackgroundColor3=Color3.fromRGB(28,28,36)
 			b.BackgroundTransparency=0.4
 			b.TextColor3=SUBTEXT
 		end
 		page.Visible=true
+		tabBtn.BackgroundColor3=PURPLE
+		tabBtn.BackgroundTransparency=0
 		tabBtn.TextColor3=Color3.fromRGB(255,255,255)
 	end
 
@@ -190,7 +191,7 @@ function VeloraLib:AddTab(name)
 		lbl.Text=text
 		lbl.Font=Enum.Font.GothamBold
 		lbl.TextSize=15
-		lbl.TextColor3=Color3.fromRGB(255,255,255)
+		lbl.TextColor3=TEXT
 		lbl.TextXAlignment=Enum.TextXAlignment.Center
 		return f
 	end
@@ -342,8 +343,8 @@ function VeloraLib:AddTab(name)
 		selectedLbl.Text=options[1] or ""
 		selectedLbl.Font=Enum.Font.Gotham
 		selectedLbl.TextSize=13
-		selectedLbl.TextColor3=Color3.fromRGB(255,255,255)
-		selectedLbl.TextXAlignment=Enum.TextXAlignment.Left
+		selectedLbl.TextColor3=TEXT
+		selectedLbl.TextXAlignment=Enum.TextXAlignment.Right
 
 		local arrow=Instance.new("TextLabel",f)
 		arrow.Size=UDim2.new(0,24,0,24)
@@ -374,11 +375,11 @@ function VeloraLib:AddTab(name)
 			item.Text=opt
 			item.Font=Enum.Font.Gotham
 			item.TextSize=13
-			item.TextColor3=Color3.fromRGB(255,255,255)
+			item.TextColor3=TEXT
 			item.TextXAlignment=Enum.TextXAlignment.Left
 			item.ZIndex=11
-			local ipad=Instance.new("UIPadding",item)
-			ipad.PaddingLeft=UDim.new(0,12)
+			local iPad=Instance.new("UIPadding",item)
+			iPad.PaddingLeft=UDim.new(0,12)
 			item.MouseButton1Click:Connect(function()
 				selectedLbl.Text=opt
 				dropFrame.Visible=false
@@ -430,8 +431,8 @@ function VeloraLib:AddTab(name)
 		countLbl.Text="0 selected"
 		countLbl.Font=Enum.Font.Gotham
 		countLbl.TextSize=12
-		countLbl.TextColor3=Color3.fromRGB(255,255,255)
-		countLbl.TextXAlignment=Enum.TextXAlignment.Left
+		countLbl.TextColor3=TEXT
+		countLbl.TextXAlignment=Enum.TextXAlignment.Right
 
 		local arrow=Instance.new("TextLabel",f)
 		arrow.Size=UDim2.new(0,24,0,24)
@@ -474,7 +475,7 @@ function VeloraLib:AddTab(name)
 			itemLbl.Text=opt
 			itemLbl.Font=Enum.Font.Gotham
 			itemLbl.TextSize=13
-			itemLbl.TextColor3=Color3.fromRGB(255,255,255)
+			itemLbl.TextColor3=TEXT
 			itemLbl.TextXAlignment=Enum.TextXAlignment.Left
 			itemLbl.ZIndex=11
 
