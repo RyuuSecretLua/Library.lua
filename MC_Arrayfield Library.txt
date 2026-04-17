@@ -3897,4 +3897,46 @@ local Window = ArrayField:CreateWindow({
     })
 --]]
 
+function VeloraField:AddDropdownMulti(tab, options)
+    local Dropdown = {}
+    Dropdown.Selected = {}
+
+    local Frame = tab:CreateDropdown({
+        Name = options.Name or "Dropdown Multi",
+        Options = options.Options or {},
+        CurrentOption = {},
+        Flag = options.Flag or "DropdownMulti",
+        Callback = function() end
+    })
+
+    for _,v in pairs(options.Options) do
+        Dropdown.Selected[v] = false
+    end
+
+    function Dropdown:Refresh()
+        local selectedList = {}
+        for k,v in pairs(self.Selected) do
+            if v then
+                table.insert(selectedList, k)
+            end
+        end
+        Frame:Set(selectedList)
+        if options.Callback then
+            options.Callback(selectedList)
+        end
+    end
+
+    for _,item in pairs(options.Options) do
+        Frame:AddButton({
+            Name = item,
+            Callback = function()
+                Dropdown.Selected[item] = not Dropdown.Selected[item]
+                Dropdown:Refresh()
+            end
+        })
+    end
+
+    return Dropdown
+end
+
 return ArrayFieldLibrary
