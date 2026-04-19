@@ -1,0 +1,2816 @@
+if debugX then
+	warn('Initialising VeloraField')
+end
+
+local function getService(name)
+	local service = game:GetService(name)
+	return if cloneref then cloneref(service) else service
+end
+
+local UserInputService = getService("UserInputService")
+local TweenService = getService("TweenService")
+local Players = getService("Players")
+local CoreGui = getService("CoreGui")
+
+local function loadWithTimeout(url: string, timeout: number?): ...any
+	assert(type(url) == "string", "Expected string, got " .. type(url))
+	timeout = timeout or 5
+	local requestCompleted = false
+	local success, result = false, nil
+
+	local requestThread = task.spawn(function()
+		local fetchSuccess, fetchResult = pcall(game.HttpGet, game, url)
+		if not fetchSuccess or #fetchResult == 0 then
+			if #fetchResult == 0 then
+				fetchResult = "Empty response"
+			end
+			success, result = false, fetchResult
+			requestCompleted = true
+			return
+		end
+		local content = fetchResult
+		local execSuccess, execResult = pcall(function()
+			return loadstring(content)()
+		end)
+		success, result = execSuccess, execResult
+		requestCompleted = true
+	end)
+
+	local timeoutThread = task.delay(timeout, function()
+		if not requestCompleted then
+			warn("Request for " .. url .. " timed out after " .. tostring(timeout) .. " seconds")
+			task.cancel(requestThread)
+			result = "Request timed out"
+			requestCompleted = true
+		end
+	end)
+
+	while not requestCompleted do
+		task.wait()
+	end
+	if coroutine.status(timeoutThread) ~= "dead" then
+		task.cancel(timeoutThread)
+	end
+	if not success then
+		warn("Failed to process " .. tostring(url) .. ": " .. tostring(result))
+	end
+	return if success then result else nil
+end
+
+local _getgenv = rawget(_G, "getgenv")
+local requestsDisabled = false
+local customAssetId = nil
+local secureMode = false
+if _getgenv then
+	local ok, result = pcall(function() return _getgenv().DISABLE_RAYFIELD_REQUESTS end)
+	if ok and result then requestsDisabled = true end
+	local ok2, result2 = pcall(function() return _getgenv().RAYFIELD_ASSET_ID end)
+	if ok2 and type(result2) == "number" then customAssetId = result2 end
+	local ok3, result3 = pcall(function() return _getgenv().RAYFIELD_SECURE end)
+	if ok3 and result3 then secureMode = true end
+end
+
+if secureMode then
+	local _error = error
+	local _assert = assert
+	warn = function(...) end
+	print = function(...) end
+	error = function(_, level) _error("", level) end
+	assert = function(v, ...) return _assert(v) end
+end
+
+local secureWarnings = {}
+local customAssets = {}
+
+local function secureNotify(wType, title, content)
+	if secureWarnings[wType] then return end
+	secureWarnings[wType] = true
+	task.spawn(function()
+		while not VeloraFieldLibrary or not VeloraFieldLibrary.Notify do task.wait(0.5) end
+		VeloraFieldLibrary:Notify({
+			Title = title,
+			Content = content,
+			Duration = 8,
+		})
+	end)
+end
+
+local InterfaceBuild = 'UU2NX'
+local Release = "Build 1.746"
+local RayfieldFolder = "VeloraField"
+local ConfigurationFolder = RayfieldFolder.."/Configurations"
+local ConfigurationExtension = ".rfld"
+local settingsTable = {
+	General = {
+		rayfieldOpen = {Type = 'bind', Value = 'K', Name = 'VeloraField Keybind'},
+	},
+	System = {
+		usageAnalytics = {Type = 'toggle', Value = true, Name = 'Anonymised Analytics'},
+	}
+}
+
+local overriddenSettings: { [string]: any } = {}
+local function overrideSetting(category: string, name: string, value: any)
+	overriddenSettings[category .. "." .. name] = value
+end
+
+local function getSetting(category: string, name: string): any
+	if overriddenSettings[category .. "." .. name] ~= nil then
+		return overriddenSettings[category .. "." .. name]
+	elseif settingsTable[category][name] ~= nil then
+		return settingsTable[category][name].Value
+	end
+end
+
+if requestsDisabled then
+	overrideSetting("System", "usageAnalytics", false)
+end
+
+local HttpService = getService('HttpService')
+local RunService = getService('RunService')
+
+local useStudio = RunService:IsStudio() or false
+
+local settingsCreated = false
+local settingsInitialized = false
+local prompt = useStudio and require(script.Parent.prompt) or loadWithTimeout('https://raw.githubusercontent.com/SiriusSoftwareLtd/Sirius/refs/heads/request/prompt.lua')
+local requestFunc = (syn and syn.request) or (fluxus and fluxus.request) or (http and http.request) or http_request or request
+
+if not prompt and not useStudio then
+	warn("Failed to load prompt library, using fallback")
+	prompt = {
+		create = function() end
+	}
+end
+
+local function callSafely(func, ...)
+	if func then
+		local success, result = pcall(func, ...)
+		if not success then
+			warn("VeloraField | Function failed with error: ", result)
+			return false
+		else
+			return result
+		end
+	end
+end
+
+local function ensureFolder(folderPath)
+	if isfolder and not callSafely(isfolder, folderPath) then
+		callSafely(makefolder, folderPath)
+	end
+end
+
+local function loadSettings()
+	local file = nil
+
+	local success, result = pcall(function()
+		if callSafely(isfolder, RayfieldFolder) then
+			if callSafely(isfile, RayfieldFolder..'/settings'..ConfigurationExtension) then
+				file = callSafely(readfile, RayfieldFolder..'/settings'..ConfigurationExtension)
+			end
+		end
+
+		if useStudio then
+			file = [[
+{"General":{"rayfieldOpen":{"Value":"K","Type":"bind","Name":"VeloraField Keybind","Element":{"HoldToInteract":false,"Ext":true,"Name":"VeloraField Keybind","Set":null,"CallOnChange":true,"Callback":null,"CurrentKeybind":"K"}}},"System":{"usageAnalytics":{"Value":false,"Type":"toggle","Name":"Anonymised Analytics","Element":{"Ext":true,"Name":"Anonymised Analytics","Set":null,"CurrentValue":false,"Callback":null}}}}
+]]
+		end
+
+		if file then
+			local decodeSuccess, decodedFile = pcall(function() return HttpService:JSONDecode(file) end)
+			if decodeSuccess then
+				file = decodedFile
+			else
+				file = {}
+			end
+		else
+			file = {}
+		end
+
+		if not settingsCreated then
+			return
+		end
+
+		if next(file) ~= nil then
+			for categoryName, settingCategory in pairs(settingsTable) do
+				if file[categoryName] then
+					for settingName, setting in pairs(settingCategory) do
+						if file[categoryName][settingName] then
+							setting.Value = file[categoryName][settingName].Value
+							setting.Element:Set(getSetting(categoryName, settingName))
+						end
+					end
+				end
+			end
+		else
+			for settingName, settingValue in overriddenSettings do
+				local split = string.split(settingName, ".")
+				assert(#split == 2, "VeloraField | Invalid overridden setting name: " .. settingName)
+				local categoryName = split[1]
+				local settingNameOnly = split[2]
+				if settingsTable[categoryName] and settingsTable[categoryName][settingNameOnly] then
+					settingsTable[categoryName][settingNameOnly].Element:Set(settingValue)
+				end
+			end
+		end
+		settingsInitialized = true
+	end)
+
+	if not success then
+		if writefile then
+			warn('VeloraField had an issue accessing configuration saving capability.')
+		end
+	end
+end
+
+loadSettings()
+
+local ANALYTICS_TOKEN = "05de7f9fd320d3b8428cd1c77014a337b85b6c8efee2c5914f5ab5700c354b9a"
+
+local reporter = nil
+if not requestsDisabled and not useStudio then
+	local fetchSuccess, fetchResult = pcall((game :: any).HttpGet, game, "https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/refs/heads/main/reporter.lua")
+	if fetchSuccess and #fetchResult > 0 then
+		local execSuccess, Analytics = pcall(function()
+			return (loadstring(fetchResult) :: any)()
+		end)
+		if execSuccess and Analytics then
+			pcall(function()
+				reporter = Analytics.new({
+					url          = "https://rayfield-collect.sirius-software-ltd.workers.dev",
+					token        = ANALYTICS_TOKEN,
+					product_name = "VeloraField",
+					category     = "UILibrary",
+				})
+			end)
+		end
+	end
+end
+
+local VeloraFieldLibrary = {
+	Flags = {},
+	Theme = {
+		Default = {
+			TextColor = Color3.fromRGB(240, 240, 240),
+			Background = Color3.fromRGB(25, 25, 25),
+			Topbar = Color3.fromRGB(34, 34, 34),
+			Shadow = Color3.fromRGB(20, 20, 20),
+			NotificationBackground = Color3.fromRGB(20, 20, 20),
+			NotificationActionsBackground = Color3.fromRGB(230, 230, 230),
+			TabBackground = Color3.fromRGB(80, 80, 80),
+			TabStroke = Color3.fromRGB(85, 85, 85),
+			TabBackgroundSelected = Color3.fromRGB(210, 210, 210),
+			TabTextColor = Color3.fromRGB(240, 240, 240),
+			SelectedTabTextColor = Color3.fromRGB(50, 50, 50),
+			ElementBackground = Color3.fromRGB(35, 35, 35),
+			ElementBackgroundHover = Color3.fromRGB(40, 40, 40),
+			SecondaryElementBackground = Color3.fromRGB(25, 25, 25),
+			ElementStroke = Color3.fromRGB(50, 50, 50),
+			SecondaryElementStroke = Color3.fromRGB(40, 40, 40),
+			SliderBackground = Color3.fromRGB(50, 138, 220),
+			SliderProgress = Color3.fromRGB(50, 138, 220),
+			SliderStroke = Color3.fromRGB(58, 163, 255),
+			ToggleBackground = Color3.fromRGB(30, 30, 30),
+			ToggleEnabled = Color3.fromRGB(0, 146, 214),
+			ToggleDisabled = Color3.fromRGB(100, 100, 100),
+			ToggleEnabledStroke = Color3.fromRGB(0, 170, 255),
+			ToggleDisabledStroke = Color3.fromRGB(125, 125, 125),
+			ToggleEnabledOuterStroke = Color3.fromRGB(100, 100, 100),
+			ToggleDisabledOuterStroke = Color3.fromRGB(65, 65, 65),
+			DropdownSelected = Color3.fromRGB(40, 40, 40),
+			DropdownUnselected = Color3.fromRGB(30, 30, 30),
+			InputBackground = Color3.fromRGB(30, 30, 30),
+			InputStroke = Color3.fromRGB(65, 65, 65),
+			PlaceholderColor = Color3.fromRGB(178, 178, 178)
+		},
+		Ocean = {
+			TextColor = Color3.fromRGB(230, 240, 240),
+			Background = Color3.fromRGB(20, 30, 30),
+			Topbar = Color3.fromRGB(25, 40, 40),
+			Shadow = Color3.fromRGB(15, 20, 20),
+			NotificationBackground = Color3.fromRGB(25, 35, 35),
+			NotificationActionsBackground = Color3.fromRGB(230, 240, 240),
+			TabBackground = Color3.fromRGB(40, 60, 60),
+			TabStroke = Color3.fromRGB(50, 70, 70),
+			TabBackgroundSelected = Color3.fromRGB(100, 180, 180),
+			TabTextColor = Color3.fromRGB(210, 230, 230),
+			SelectedTabTextColor = Color3.fromRGB(20, 50, 50),
+			ElementBackground = Color3.fromRGB(30, 50, 50),
+			ElementBackgroundHover = Color3.fromRGB(40, 60, 60),
+			SecondaryElementBackground = Color3.fromRGB(30, 45, 45),
+			ElementStroke = Color3.fromRGB(45, 70, 70),
+			SecondaryElementStroke = Color3.fromRGB(40, 65, 65),
+			SliderBackground = Color3.fromRGB(0, 110, 110),
+			SliderProgress = Color3.fromRGB(0, 140, 140),
+			SliderStroke = Color3.fromRGB(0, 160, 160),
+			ToggleBackground = Color3.fromRGB(30, 50, 50),
+			ToggleEnabled = Color3.fromRGB(0, 130, 130),
+			ToggleDisabled = Color3.fromRGB(70, 90, 90),
+			ToggleEnabledStroke = Color3.fromRGB(0, 160, 160),
+			ToggleDisabledStroke = Color3.fromRGB(85, 105, 105),
+			ToggleEnabledOuterStroke = Color3.fromRGB(50, 100, 100),
+			ToggleDisabledOuterStroke = Color3.fromRGB(45, 65, 65),
+			DropdownSelected = Color3.fromRGB(30, 60, 60),
+			DropdownUnselected = Color3.fromRGB(25, 40, 40),
+			InputBackground = Color3.fromRGB(30, 50, 50),
+			InputStroke = Color3.fromRGB(50, 70, 70),
+			PlaceholderColor = Color3.fromRGB(140, 160, 160)
+		},
+		AmberGlow = {
+			TextColor = Color3.fromRGB(255, 245, 230),
+			Background = Color3.fromRGB(45, 30, 20),
+			Topbar = Color3.fromRGB(55, 40, 25),
+			Shadow = Color3.fromRGB(35, 25, 15),
+			NotificationBackground = Color3.fromRGB(50, 35, 25),
+			NotificationActionsBackground = Color3.fromRGB(245, 230, 215),
+			TabBackground = Color3.fromRGB(75, 50, 35),
+			TabStroke = Color3.fromRGB(90, 60, 45),
+			TabBackgroundSelected = Color3.fromRGB(230, 180, 100),
+			TabTextColor = Color3.fromRGB(250, 220, 200),
+			SelectedTabTextColor = Color3.fromRGB(50, 30, 10),
+			ElementBackground = Color3.fromRGB(60, 45, 35),
+			ElementBackgroundHover = Color3.fromRGB(70, 50, 40),
+			SecondaryElementBackground = Color3.fromRGB(55, 40, 30),
+			ElementStroke = Color3.fromRGB(85, 60, 45),
+			SecondaryElementStroke = Color3.fromRGB(75, 50, 35),
+			SliderBackground = Color3.fromRGB(220, 130, 60),
+			SliderProgress = Color3.fromRGB(250, 150, 75),
+			SliderStroke = Color3.fromRGB(255, 170, 85),
+			ToggleBackground = Color3.fromRGB(55, 40, 30),
+			ToggleEnabled = Color3.fromRGB(240, 130, 30),
+			ToggleDisabled = Color3.fromRGB(90, 70, 60),
+			ToggleEnabledStroke = Color3.fromRGB(255, 160, 50),
+			ToggleDisabledStroke = Color3.fromRGB(110, 85, 75),
+			ToggleEnabledOuterStroke = Color3.fromRGB(200, 100, 50),
+			ToggleDisabledOuterStroke = Color3.fromRGB(75, 60, 55),
+			DropdownSelected = Color3.fromRGB(70, 50, 40),
+			DropdownUnselected = Color3.fromRGB(55, 40, 30),
+			InputBackground = Color3.fromRGB(60, 45, 35),
+			InputStroke = Color3.fromRGB(90, 65, 50),
+			PlaceholderColor = Color3.fromRGB(190, 150, 130)
+		},
+		Light = {
+			TextColor = Color3.fromRGB(40, 40, 40),
+			Background = Color3.fromRGB(245, 245, 245),
+			Topbar = Color3.fromRGB(230, 230, 230),
+			Shadow = Color3.fromRGB(200, 200, 200),
+			NotificationBackground = Color3.fromRGB(250, 250, 250),
+			NotificationActionsBackground = Color3.fromRGB(240, 240, 240),
+			TabBackground = Color3.fromRGB(235, 235, 235),
+			TabStroke = Color3.fromRGB(215, 215, 215),
+			TabBackgroundSelected = Color3.fromRGB(255, 255, 255),
+			TabTextColor = Color3.fromRGB(80, 80, 80),
+			SelectedTabTextColor = Color3.fromRGB(0, 0, 0),
+			ElementBackground = Color3.fromRGB(240, 240, 240),
+			ElementBackgroundHover = Color3.fromRGB(225, 225, 225),
+			SecondaryElementBackground = Color3.fromRGB(235, 235, 235),
+			ElementStroke = Color3.fromRGB(210, 210, 210),
+			SecondaryElementStroke = Color3.fromRGB(210, 210, 210),
+			SliderBackground = Color3.fromRGB(150, 180, 220),
+			SliderProgress = Color3.fromRGB(100, 150, 200),
+			SliderStroke = Color3.fromRGB(120, 170, 220),
+			ToggleBackground = Color3.fromRGB(220, 220, 220),
+			ToggleEnabled = Color3.fromRGB(0, 146, 214),
+			ToggleDisabled = Color3.fromRGB(150, 150, 150),
+			ToggleEnabledStroke = Color3.fromRGB(0, 170, 255),
+			ToggleDisabledStroke = Color3.fromRGB(170, 170, 170),
+			ToggleEnabledOuterStroke = Color3.fromRGB(100, 100, 100),
+			ToggleDisabledOuterStroke = Color3.fromRGB(180, 180, 180),
+			DropdownSelected = Color3.fromRGB(230, 230, 230),
+			DropdownUnselected = Color3.fromRGB(220, 220, 220),
+			InputBackground = Color3.fromRGB(240, 240, 240),
+			InputStroke = Color3.fromRGB(180, 180, 180),
+			PlaceholderColor = Color3.fromRGB(140, 140, 140)
+		},
+		Amethyst = {
+			TextColor = Color3.fromRGB(240, 240, 240),
+			Background = Color3.fromRGB(30, 20, 40),
+			Topbar = Color3.fromRGB(40, 25, 50),
+			Shadow = Color3.fromRGB(20, 15, 30),
+			NotificationBackground = Color3.fromRGB(35, 20, 40),
+			NotificationActionsBackground = Color3.fromRGB(240, 240, 250),
+			TabBackground = Color3.fromRGB(60, 40, 80),
+			TabStroke = Color3.fromRGB(70, 45, 90),
+			TabBackgroundSelected = Color3.fromRGB(180, 140, 200),
+			TabTextColor = Color3.fromRGB(230, 230, 240),
+			SelectedTabTextColor = Color3.fromRGB(50, 20, 50),
+			ElementBackground = Color3.fromRGB(45, 30, 60),
+			ElementBackgroundHover = Color3.fromRGB(50, 35, 70),
+			SecondaryElementBackground = Color3.fromRGB(40, 30, 55),
+			ElementStroke = Color3.fromRGB(70, 50, 85),
+			SecondaryElementStroke = Color3.fromRGB(65, 45, 80),
+			SliderBackground = Color3.fromRGB(100, 60, 150),
+			SliderProgress = Color3.fromRGB(130, 80, 180),
+			SliderStroke = Color3.fromRGB(150, 100, 200),
+			ToggleBackground = Color3.fromRGB(45, 30, 55),
+			ToggleEnabled = Color3.fromRGB(120, 60, 150),
+			ToggleDisabled = Color3.fromRGB(94, 47, 117),
+			ToggleEnabledStroke = Color3.fromRGB(140, 80, 170),
+			ToggleDisabledStroke = Color3.fromRGB(124, 71, 150),
+			ToggleEnabledOuterStroke = Color3.fromRGB(90, 40, 120),
+			ToggleDisabledOuterStroke = Color3.fromRGB(80, 50, 110),
+			DropdownSelected = Color3.fromRGB(50, 35, 70),
+			DropdownUnselected = Color3.fromRGB(35, 25, 50),
+			InputBackground = Color3.fromRGB(45, 30, 60),
+			InputStroke = Color3.fromRGB(80, 50, 110),
+			PlaceholderColor = Color3.fromRGB(178, 150, 200)
+		},
+		Green = {
+			TextColor = Color3.fromRGB(30, 60, 30),
+			Background = Color3.fromRGB(235, 245, 235),
+			Topbar = Color3.fromRGB(210, 230, 210),
+			Shadow = Color3.fromRGB(200, 220, 200),
+			NotificationBackground = Color3.fromRGB(240, 250, 240),
+			NotificationActionsBackground = Color3.fromRGB(220, 235, 220),
+			TabBackground = Color3.fromRGB(215, 235, 215),
+			TabStroke = Color3.fromRGB(190, 210, 190),
+			TabBackgroundSelected = Color3.fromRGB(245, 255, 245),
+			TabTextColor = Color3.fromRGB(50, 80, 50),
+			SelectedTabTextColor = Color3.fromRGB(20, 60, 20),
+			ElementBackground = Color3.fromRGB(225, 240, 225),
+			ElementBackgroundHover = Color3.fromRGB(210, 225, 210),
+			SecondaryElementBackground = Color3.fromRGB(235, 245, 235),
+			ElementStroke = Color3.fromRGB(180, 200, 180),
+			SecondaryElementStroke = Color3.fromRGB(180, 200, 180),
+			SliderBackground = Color3.fromRGB(90, 160, 90),
+			SliderProgress = Color3.fromRGB(70, 130, 70),
+			SliderStroke = Color3.fromRGB(100, 180, 100),
+			ToggleBackground = Color3.fromRGB(215, 235, 215),
+			ToggleEnabled = Color3.fromRGB(60, 130, 60),
+			ToggleDisabled = Color3.fromRGB(150, 175, 150),
+			ToggleEnabledStroke = Color3.fromRGB(80, 150, 80),
+			ToggleDisabledStroke = Color3.fromRGB(130, 150, 130),
+			ToggleEnabledOuterStroke = Color3.fromRGB(100, 160, 100),
+			ToggleDisabledOuterStroke = Color3.fromRGB(160, 180, 160),
+			DropdownSelected = Color3.fromRGB(225, 240, 225),
+			DropdownUnselected = Color3.fromRGB(210, 225, 210),
+			InputBackground = Color3.fromRGB(235, 245, 235),
+			InputStroke = Color3.fromRGB(180, 200, 180),
+			PlaceholderColor = Color3.fromRGB(120, 140, 120)
+		},
+		Bloom = {
+			TextColor = Color3.fromRGB(60, 40, 50),
+			Background = Color3.fromRGB(255, 240, 245),
+			Topbar = Color3.fromRGB(250, 220, 225),
+			Shadow = Color3.fromRGB(230, 190, 195),
+			NotificationBackground = Color3.fromRGB(255, 235, 240),
+			NotificationActionsBackground = Color3.fromRGB(245, 215, 225),
+			TabBackground = Color3.fromRGB(240, 210, 220),
+			TabStroke = Color3.fromRGB(230, 200, 210),
+			TabBackgroundSelected = Color3.fromRGB(255, 225, 235),
+			TabTextColor = Color3.fromRGB(80, 40, 60),
+			SelectedTabTextColor = Color3.fromRGB(50, 30, 50),
+			ElementBackground = Color3.fromRGB(255, 235, 240),
+			ElementBackgroundHover = Color3.fromRGB(245, 220, 230),
+			SecondaryElementBackground = Color3.fromRGB(255, 235, 240),
+			ElementStroke = Color3.fromRGB(230, 200, 210),
+			SecondaryElementStroke = Color3.fromRGB(230, 200, 210),
+			SliderBackground = Color3.fromRGB(240, 130, 160),
+			SliderProgress = Color3.fromRGB(250, 160, 180),
+			SliderStroke = Color3.fromRGB(255, 180, 200),
+			ToggleBackground = Color3.fromRGB(240, 210, 220),
+			ToggleEnabled = Color3.fromRGB(255, 140, 170),
+			ToggleDisabled = Color3.fromRGB(200, 180, 185),
+			ToggleEnabledStroke = Color3.fromRGB(250, 160, 190),
+			ToggleDisabledStroke = Color3.fromRGB(210, 180, 190),
+			ToggleEnabledOuterStroke = Color3.fromRGB(220, 160, 180),
+			ToggleDisabledOuterStroke = Color3.fromRGB(190, 170, 180),
+			DropdownSelected = Color3.fromRGB(250, 220, 225),
+			DropdownUnselected = Color3.fromRGB(240, 210, 220),
+			InputBackground = Color3.fromRGB(255, 235, 240),
+			InputStroke = Color3.fromRGB(220, 190, 200),
+			PlaceholderColor = Color3.fromRGB(170, 130, 140)
+		},
+		DarkBlue = {
+			TextColor = Color3.fromRGB(230, 230, 230),
+			Background = Color3.fromRGB(20, 25, 30),
+			Topbar = Color3.fromRGB(30, 35, 40),
+			Shadow = Color3.fromRGB(15, 20, 25),
+			NotificationBackground = Color3.fromRGB(25, 30, 35),
+			NotificationActionsBackground = Color3.fromRGB(45, 50, 55),
+			TabBackground = Color3.fromRGB(35, 40, 45),
+			TabStroke = Color3.fromRGB(45, 50, 60),
+			TabBackgroundSelected = Color3.fromRGB(40, 70, 100),
+			TabTextColor = Color3.fromRGB(200, 200, 200),
+			SelectedTabTextColor = Color3.fromRGB(255, 255, 255),
+			ElementBackground = Color3.fromRGB(30, 35, 40),
+			ElementBackgroundHover = Color3.fromRGB(40, 45, 50),
+			SecondaryElementBackground = Color3.fromRGB(35, 40, 45),
+			ElementStroke = Color3.fromRGB(45, 50, 60),
+			SecondaryElementStroke = Color3.fromRGB(40, 45, 55),
+			SliderBackground = Color3.fromRGB(0, 90, 180),
+			SliderProgress = Color3.fromRGB(0, 120, 210),
+			SliderStroke = Color3.fromRGB(0, 150, 240),
+			ToggleBackground = Color3.fromRGB(35, 40, 45),
+			ToggleEnabled = Color3.fromRGB(0, 120, 210),
+			ToggleDisabled = Color3.fromRGB(70, 70, 80),
+			ToggleEnabledStroke = Color3.fromRGB(0, 150, 240),
+			ToggleDisabledStroke = Color3.fromRGB(75, 75, 85),
+			ToggleEnabledOuterStroke = Color3.fromRGB(20, 100, 180),
+			ToggleDisabledOuterStroke = Color3.fromRGB(55, 55, 65),
+			DropdownSelected = Color3.fromRGB(30, 70, 90),
+			DropdownUnselected = Color3.fromRGB(25, 30, 35),
+			InputBackground = Color3.fromRGB(25, 30, 35),
+			InputStroke = Color3.fromRGB(45, 50, 60),
+			PlaceholderColor = Color3.fromRGB(150, 150, 160)
+		},
+		Serenity = {
+			TextColor = Color3.fromRGB(50, 55, 60),
+			Background = Color3.fromRGB(240, 245, 250),
+			Topbar = Color3.fromRGB(215, 225, 235),
+			Shadow = Color3.fromRGB(200, 210, 220),
+			NotificationBackground = Color3.fromRGB(210, 220, 230),
+			NotificationActionsBackground = Color3.fromRGB(225, 230, 240),
+			TabBackground = Color3.fromRGB(200, 210, 220),
+			TabStroke = Color3.fromRGB(180, 190, 200),
+			TabBackgroundSelected = Color3.fromRGB(175, 185, 200),
+			TabTextColor = Color3.fromRGB(50, 55, 60),
+			SelectedTabTextColor = Color3.fromRGB(30, 35, 40),
+			ElementBackground = Color3.fromRGB(210, 220, 230),
+			ElementBackgroundHover = Color3.fromRGB(220, 230, 240),
+			SecondaryElementBackground = Color3.fromRGB(200, 210, 220),
+			ElementStroke = Color3.fromRGB(190, 200, 210),
+			SecondaryElementStroke = Color3.fromRGB(180, 190, 200),
+			SliderBackground = Color3.fromRGB(200, 220, 235),
+			SliderProgress = Color3.fromRGB(70, 130, 180),
+			SliderStroke = Color3.fromRGB(150, 180, 220),
+			ToggleBackground = Color3.fromRGB(210, 220, 230),
+			ToggleEnabled = Color3.fromRGB(70, 160, 210),
+			ToggleDisabled = Color3.fromRGB(180, 180, 180),
+			ToggleEnabledStroke = Color3.fromRGB(60, 150, 200),
+			ToggleDisabledStroke = Color3.fromRGB(140, 140, 140),
+			ToggleEnabledOuterStroke = Color3.fromRGB(100, 120, 140),
+			ToggleDisabledOuterStroke = Color3.fromRGB(120, 120, 130),
+			DropdownSelected = Color3.fromRGB(220, 230, 240),
+			DropdownUnselected = Color3.fromRGB(200, 210, 220),
+			InputBackground = Color3.fromRGB(220, 230, 240),
+			InputStroke = Color3.fromRGB(180, 190, 200),
+			PlaceholderColor = Color3.fromRGB(150, 150, 150)
+		},
+	}
+}
+
+local RayfieldAssetId = customAssetId or 98801320804629
+local Rayfield = useStudio and script.Parent:FindFirstChild('Rayfield') or game:GetObjects("rbxassetid://"..RayfieldAssetId)[1]
+local buildAttempts = 0
+local correctBuild = false
+local warned
+local globalLoaded
+local rayfieldDestroyed = false
+
+repeat
+	if Rayfield:FindFirstChild('Build') and Rayfield.Build.Value == InterfaceBuild then
+		correctBuild = true
+		break
+	end
+	correctBuild = false
+	if not warned then
+		warn('VeloraField | Build Mismatch')
+		print('VeloraField may encounter issues as you are running an incompatible interface version ('.. ((Rayfield:FindFirstChild('Build') and Rayfield.Build.Value) or 'No Build') ..').\n\nThis version of VeloraField is intended for interface build '..InterfaceBuild..'.')
+		warned = true
+	end
+	local toDestroy
+	toDestroy, Rayfield = Rayfield, useStudio and script.Parent:FindFirstChild('Rayfield') or game:GetObjects("rbxassetid://"..RayfieldAssetId)[1]
+	if toDestroy and not useStudio then toDestroy:Destroy() end
+	buildAttempts = buildAttempts + 1
+until buildAttempts >= 2
+
+Rayfield.Enabled = false
+
+if gethui then
+	Rayfield.Parent = gethui()
+elseif syn and syn.protect_gui then
+	syn.protect_gui(Rayfield)
+	Rayfield.Parent = CoreGui
+elseif not useStudio and CoreGui:FindFirstChild("RobloxGui") then
+	Rayfield.Parent = CoreGui:FindFirstChild("RobloxGui")
+elseif not useStudio then
+	Rayfield.Parent = CoreGui
+end
+
+if gethui then
+	for _, Interface in ipairs(gethui():GetChildren()) do
+		if Interface.Name == Rayfield.Name and Interface ~= Rayfield then
+			Interface.Enabled = false
+			Interface.Name = "VeloraField-Old"
+		end
+	end
+elseif not useStudio then
+	for _, Interface in ipairs(CoreGui:GetChildren()) do
+		if Interface.Name == Rayfield.Name and Interface ~= Rayfield then
+			Interface.Enabled = false
+			Interface.Name = "VeloraField-Old"
+		end
+	end
+end
+
+do
+	local AssetPath = RayfieldFolder.."/Assets"
+	local AssetBaseURL = "https://github.com/SiriusSoftwareLtd/Rayfield/blob/main/assets/"
+
+	local assetFiles = {
+		["111263549366178"] = AssetBaseURL.."111263549366178.png?raw=true",
+		["77891951053543"] = AssetBaseURL.."77891951053543.png?raw=true",
+		["78137979054938"] = AssetBaseURL.."78137979054938.png?raw=true",
+		["80503127983237"] = AssetBaseURL.."80503127983237.png?raw=true",
+		["10137832201"] = AssetBaseURL.."10137832201.png?raw=true",
+		["10137941941"] = AssetBaseURL.."10137941941.png?raw=true",
+		["11036884234"] = AssetBaseURL.."11036884234.png?raw=true",
+		["11413591840"] = AssetBaseURL.."11413591840.png?raw=true",
+		["11745872910"] = AssetBaseURL.."11745872910.png?raw=true",
+		["12577727209"] = AssetBaseURL.."12577727209.png?raw=true",
+		["18458939117"] = AssetBaseURL.."18458939117.png?raw=true",
+		["3259050989"] = AssetBaseURL.."3259050989.png?raw=true",
+		["3523728077"] = AssetBaseURL.."3523728077.png?raw=true",
+		["3602733521"] = AssetBaseURL.."3602733521.png?raw=true",
+		["IconChevronTopMedium"] = AssetBaseURL.."IconChevronTopMedium.png?raw=true",
+		["4483362458"] = AssetBaseURL.."4483362458.png?raw=true",
+		["5587865193"] = AssetBaseURL.."5587865193.png?raw=true",
+		["IconMagnifyingGlass2"] = AssetBaseURL.."IconMagnifyingGlass2.png?raw=true",
+	}
+
+	for id, _ in assetFiles do
+		customAssets[tostring(id)] = ""
+	end
+
+	local hasCustomAsset = type(getcustomasset) == "function"
+	local hasFilesystem = type(writefile) == "function" and type(makefolder) == "function" and type(isfile) == "function" and type(isfolder) == "function"
+
+	if hasCustomAsset and hasFilesystem then
+		local ok, err = pcall(function()
+			ensureFolder(RayfieldFolder)
+			ensureFolder(AssetPath)
+
+			local function nextMissing()
+				for id, _ in assetFiles do
+					if not isfile(AssetPath.."/"..tostring(id)..".png") then
+						return id
+					end
+				end
+				return nil
+			end
+
+			if nextMissing() then
+				task.spawn(function()
+					while true do
+						local id = nextMissing()
+						if not id then break end
+						writefile(AssetPath.."/"..tostring(id)..".png", requestFunc({Url = assetFiles[id], Method = "GET"}).Body)
+						task.wait()
+					end
+				end)
+
+				while nextMissing() do
+					task.wait(0.1)
+				end
+			end
+
+			for id, _ in assetFiles do
+				local success, asset = pcall(getcustomasset, AssetPath.."/"..tostring(id)..".png")
+				if success then
+					customAssets[tostring(id)] = asset
+				else
+					warn("VeloraField | Failed to load custom asset: "..tostring(id).." - "..tostring(asset))
+				end
+			end
+		end)
+
+		if not ok then
+			warn("VeloraField | Failed to load custom assets: "..tostring(err))
+			secureNotify("asset_load_fail", "VeloraField", "Failed to load custom assets. UI images may not display correctly.")
+		end
+	else
+		secureNotify("no_getcustomasset", "VeloraField", "Your executor does not support getcustomasset. Some UI images may not render correctly.")
+	end
+
+	Rayfield.Main.Shadow.Image.Image = customAssets[tostring(5587865193)]
+	Rayfield.Main.Topbar.Hide.Image = customAssets[tostring(10137832201)]
+	Rayfield.Main.Topbar.ChangeSize.Image = customAssets[tostring(10137941941)]
+	Rayfield.Main.Topbar.Settings.Image = customAssets[tostring(80503127983237)]
+	Rayfield.Main.Topbar.Icon.Image = customAssets[tostring(78137979054938)]
+	Rayfield.Main.Topbar.Search.Image = customAssets["IconMagnifyingGlass2"]
+	Rayfield.Main.Topbar.Search.ImageRectOffset = Vector2.new(0, 0)
+	Rayfield.Main.Topbar.Search.ImageRectSize = Vector2.new(0, 0)
+	Rayfield.Main.Elements.Template.Toggle.Switch.Shadow.Image = customAssets[tostring(3602733521)]
+	Rayfield.Main.Elements.Template.Slider.Main.Shadow.Image = customAssets[tostring(3602733521)]
+	Rayfield.Main.Elements.Template.Dropdown.Toggle.Image = customAssets["IconChevronTopMedium"]
+	Rayfield.Main.Elements.Template.Dropdown.Toggle.ImageRectOffset = Vector2.new(0, 0)
+	Rayfield.Main.Elements.Template.Dropdown.Toggle.ImageRectSize = Vector2.new(0, 0)
+	Rayfield.Main.Elements.Template.Label.Icon.Image = customAssets[tostring(11745872910)]
+	Rayfield.Main.Elements.Template.ColorPicker.CPBackground.MainCP.Image = customAssets[tostring(11413591840)]
+	Rayfield.Main.Elements.Template.ColorPicker.CPBackground.MainCP.MainPoint.Image = customAssets[tostring(3259050989)]
+	Rayfield.Main.Elements.Template.ColorPicker.ColorSlider.SliderPoint.Image = customAssets[tostring(3259050989)]
+	Rayfield.Main.TabList.Template.Image.Image = customAssets[tostring(4483362458)]
+	Rayfield.Main.Search.Search.Image = customAssets[tostring(18458939117)]
+	Rayfield.Main.Search.Shadow.Image = customAssets[tostring(5587865193)]
+	Rayfield.Notifications.Template.Icon.Image = customAssets[tostring(77891951053543)]
+	Rayfield.Notifications.Template.Shadow.Image = customAssets[tostring(3523728077)]
+	Rayfield.Loading.Banner.Image = customAssets[tostring(111263549366178)]
+
+	local VeloraBG = Instance.new("ImageLabel")
+	VeloraBG.Name = "VeloraBackground"
+	VeloraBG.Size = UDim2.new(1, 0, 1, 0)
+	VeloraBG.Position = UDim2.new(0, 0, 0, 0)
+	VeloraBG.AnchorPoint = Vector2.new(0, 0)
+	VeloraBG.Image = "rbxassetid://98801320804629"
+	VeloraBG.ImageTransparency = 0.3
+	VeloraBG.BackgroundTransparency = 1
+	VeloraBG.ScaleType = Enum.ScaleType.Crop
+	VeloraBG.ZIndex = 1
+	VeloraBG.Parent = Rayfield.Main
+
+	local UICorner = Instance.new("UICorner")
+	UICorner.CornerRadius = UDim.new(0, 6)
+	UICorner.Parent = VeloraBG
+
+	Rayfield.Main.BackgroundTransparency = 0.15
+
+end
+
+local minSize = Vector2.new(1024, 768)
+local useMobileSizing
+
+if Rayfield.AbsoluteSize.X < minSize.X and Rayfield.AbsoluteSize.Y < minSize.Y then
+	useMobileSizing = true
+end
+
+local useMobilePrompt = false
+if UserInputService.TouchEnabled then
+	useMobilePrompt = true
+end
+
+local Main = Rayfield.Main
+local MPrompt = Rayfield:FindFirstChild('Prompt')
+local Topbar = Main.Topbar
+local Elements = Main.Elements
+local LoadingFrame = Main.LoadingFrame
+local TabList = Main.TabList
+local dragBar = Rayfield:FindFirstChild('Drag')
+local dragInteract = dragBar and dragBar.Interact or nil
+local dragBarCosmetic = dragBar and dragBar.Drag or nil
+
+local dragOffset = 255
+local dragOffsetMobile = 150
+
+Rayfield.DisplayOrder = 100
+LoadingFrame.Version.Text = Release
+
+local Icons = useStudio and require(script.Parent.icons) or loadWithTimeout('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/refs/heads/main/icons.lua')
+
+local CFileName = nil
+local CEnabled = false
+local Minimised = false
+local Hidden = false
+local Debounce = false
+local searchOpen = false
+local Notifications = Rayfield.Notifications
+local keybindConnections = {}
+
+local SelectedTheme = VeloraFieldLibrary.Theme.Default
+
+local function ChangeTheme(Theme)
+	if typeof(Theme) == 'string' then
+		SelectedTheme = VeloraFieldLibrary.Theme[Theme]
+	elseif typeof(Theme) == 'table' then
+		SelectedTheme = Theme
+	end
+
+	Rayfield.Main.BackgroundColor3 = SelectedTheme.Background
+	Rayfield.Main.Topbar.BackgroundColor3 = SelectedTheme.Topbar
+	Rayfield.Main.Topbar.CornerRepair.BackgroundColor3 = SelectedTheme.Topbar
+	Rayfield.Main.Shadow.Image.ImageColor3 = SelectedTheme.Shadow
+	Rayfield.Main.Topbar.ChangeSize.ImageColor3 = SelectedTheme.TextColor
+	Rayfield.Main.Topbar.Hide.ImageColor3 = SelectedTheme.TextColor
+	Rayfield.Main.Topbar.Search.ImageColor3 = SelectedTheme.TextColor
+	if Topbar:FindFirstChild('Settings') then
+		Rayfield.Main.Topbar.Settings.ImageColor3 = SelectedTheme.TextColor
+		Rayfield.Main.Topbar.Divider.BackgroundColor3 = SelectedTheme.ElementStroke
+	end
+
+	Main.Search.BackgroundColor3 = SelectedTheme.TextColor
+	Main.Search.Shadow.ImageColor3 = SelectedTheme.TextColor
+	Main.Search.Search.ImageColor3 = SelectedTheme.TextColor
+	Main.Search.Input.PlaceholderColor3 = SelectedTheme.TextColor
+	Main.Search.UIStroke.Color = SelectedTheme.SecondaryElementStroke
+
+	if Main:FindFirstChild('Notice') then
+		Main.Notice.BackgroundColor3 = SelectedTheme.Background
+	end
+
+	for _, text in ipairs(Rayfield:GetDescendants()) do
+		if text.Parent.Parent ~= Notifications then
+			if text:IsA('TextLabel') or text:IsA('TextBox') then text.TextColor3 = SelectedTheme.TextColor end
+		end
+	end
+
+	for _, TabPage in ipairs(Elements:GetChildren()) do
+		for _, Element in ipairs(TabPage:GetChildren()) do
+			if Element.ClassName == "Frame" and Element.Name ~= "Placeholder" and Element.Name ~= "SectionSpacing" and Element.Name ~= "Divider" and Element.Name ~= "SectionTitle" and Element.Name ~= "SearchTitle-fsefsefesfsefesfesfThanks" then
+				Element.BackgroundColor3 = SelectedTheme.ElementBackground
+				Element.UIStroke.Color = SelectedTheme.ElementStroke
+				Element.BackgroundTransparency = 0.45
+			end
+		end
+	end
+end
+
+local function getIcon(name : string): {id: number, imageRectSize: Vector2, imageRectOffset: Vector2}
+	if not Icons then
+		warn("Lucide Icons: Cannot use icons as icons library is not loaded")
+		return
+	end
+	name = string.match(string.lower(name), "^%s*(.*)%s*$") :: string
+	local sizedicons = Icons['48px']
+	local r = sizedicons[name]
+	if not r then
+		error("Lucide Icons: Failed to find icon by the name of \"" .. name .. "\"", 2)
+	end
+
+	local rirs = r[2]
+	local riro = r[3]
+
+	if type(r[1]) ~= "number" or type(rirs) ~= "table" or type(riro) ~= "table" then
+		error("Lucide Icons: Internal error: Invalid auto-generated asset entry")
+	end
+
+	local irs = Vector2.new(rirs[1], rirs[2])
+	local iro = Vector2.new(riro[1], riro[2])
+
+	local asset = {
+		id = r[1],
+		imageRectSize = irs,
+		imageRectOffset = iro,
+	}
+
+	return asset
+end
+
+local function getAssetUri(id: any): string
+	local assetUri = ""
+	if type(id) == "number" then
+		assetUri = "rbxassetid://" .. id
+	elseif type(id) == "string" and not Icons then
+		warn("VeloraField | Cannot use Lucide icons as icons library is not loaded")
+	else
+		warn("VeloraField | The icon argument must either be an icon ID (number) or a Lucide icon name (string)")
+	end
+	return assetUri
+end
+
+local function isCustomAsset(value)
+	return type(value) == "string" and (string.find(value, "rbxasset://") == 1 or string.find(value, "rbxthumb://") == 1)
+end
+
+local function resolveIcon(icon)
+	if not icon or icon == 0 then
+		return "", nil, nil
+	end
+
+	if isCustomAsset(icon) then
+		return icon, nil, nil
+	end
+
+	if secureMode then
+		secureNotify("icon_blocked", "Secure Mode", "Element icons using asset IDs or Lucide names are blocked. Use getcustomasset() for icons to stay undetected.")
+		return "", nil, nil
+	end
+
+	if typeof(icon) == "string" and Icons then
+		local asset = getIcon(icon)
+		return "rbxassetid://" .. asset.id, asset.imageRectOffset, asset.imageRectSize
+	else
+		return getAssetUri(icon), nil, nil
+	end
+end
+
+local function makeDraggable(object, dragObject, enableTaptic, tapticOffset)
+	local dragging = false
+	local relative = nil
+
+	local offset = Vector2.zero
+	local screenGui = object:FindFirstAncestorWhichIsA("ScreenGui")
+	if screenGui and screenGui.IgnoreGuiInset then
+		offset += getService('GuiService'):GetGuiInset()
+	end
+
+	local function connectFunctions()
+		if dragBar and enableTaptic then
+			dragBar.MouseEnter:Connect(function()
+				if not dragging and not Hidden then
+					TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0.5, Size = UDim2.new(0, 120, 0, 4)}):Play()
+				end
+			end)
+
+			dragBar.MouseLeave:Connect(function()
+				if not dragging and not Hidden then
+					TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0.7, Size = UDim2.new(0, 100, 0, 4)}):Play()
+				end
+			end)
+		end
+	end
+
+	connectFunctions()
+
+	dragObject.InputBegan:Connect(function(input, processed)
+		if processed then return end
+
+		local inputType = input.UserInputType.Name
+		if inputType == "MouseButton1" or inputType == "Touch" then
+			dragging = true
+
+			relative = object.AbsolutePosition + object.AbsoluteSize * object.AnchorPoint - UserInputService:GetMouseLocation()
+			if enableTaptic and not Hidden then
+				TweenService:Create(dragBarCosmetic, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 110, 0, 4), BackgroundTransparency = 0}):Play()
+			end
+		end
+	end)
+
+	local inputEnded = UserInputService.InputEnded:Connect(function(input)
+		if not dragging then return end
+
+		local inputType = input.UserInputType.Name
+		if inputType == "MouseButton1" or inputType == "Touch" then
+			dragging = false
+
+			if enableTaptic and not Hidden then
+				TweenService:Create(dragBarCosmetic, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 100, 0, 4), BackgroundTransparency = 0.7}):Play()
+			end
+		end
+	end)
+
+	local renderStepped = RunService.RenderStepped:Connect(function()
+		if dragging and not Hidden then
+			local position = UserInputService:GetMouseLocation() + relative + offset
+			if enableTaptic and tapticOffset then
+				TweenService:Create(object, TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Position = UDim2.fromOffset(position.X, position.Y)}):Play()
+				TweenService:Create(dragObject.Parent, TweenInfo.new(0.05, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {Position = UDim2.fromOffset(position.X, position.Y + ((useMobileSizing and tapticOffset[2]) or tapticOffset[1]))}):Play()
+			else
+				if dragBar and tapticOffset then
+					dragBar.Position = UDim2.fromOffset(position.X, position.Y + ((useMobileSizing and tapticOffset[2]) or tapticOffset[1]))
+				end
+				object.Position = UDim2.fromOffset(position.X, position.Y)
+			end
+		end
+	end)
+
+	object.Destroying:Connect(function()
+		if inputEnded then inputEnded:Disconnect() end
+		if renderStepped then renderStepped:Disconnect() end
+	end)
+end
+
+local function PackColor(Color)
+	return {R = Color.R * 255, G = Color.G * 255, B = Color.B * 255}
+end
+
+local function UnpackColor(Color)
+	return Color3.fromRGB(Color.R, Color.G, Color.B)
+end
+
+local function LoadConfiguration(Configuration)
+	local success, Data = pcall(function() return HttpService:JSONDecode(Configuration) end)
+	local changed
+
+	if not success then warn('VeloraField had an issue decoding the configuration file, please try delete the file and reopen VeloraField.') return end
+
+	for FlagName, Flag in pairs(VeloraFieldLibrary.Flags) do
+		local FlagValue = Data[FlagName]
+
+		if (typeof(FlagValue) == 'boolean' and FlagValue == false) or FlagValue then
+			task.spawn(function()
+				if Flag.Type == "ColorPicker" then
+					changed = true
+					Flag:Set(UnpackColor(FlagValue))
+				else
+					if (Flag.CurrentValue or Flag.CurrentKeybind or Flag.CurrentOption or Flag.Color) ~= FlagValue then
+						changed = true
+						Flag:Set(FlagValue)
+					end
+				end
+			end)
+		else
+			warn("VeloraField | Unable to find '"..FlagName.. "' in the save file.")
+			print("The error above may not be an issue if new elements have been added or not been set values.")
+		end
+	end
+
+	return changed
+end
+
+local function SaveConfiguration()
+	if not CEnabled or not globalLoaded then return end
+
+	local Data = {}
+	for i, v in pairs(VeloraFieldLibrary.Flags) do
+		if v.Type == "ColorPicker" then
+			Data[i] = PackColor(v.Color)
+		else
+			if typeof(v.CurrentValue) == 'boolean' then
+				if v.CurrentValue == false then
+					Data[i] = false
+				else
+					Data[i] = v.CurrentValue or v.CurrentKeybind or v.CurrentOption or v.Color
+				end
+			else
+				Data[i] = v.CurrentValue or v.CurrentKeybind or v.CurrentOption or v.Color
+			end
+		end
+	end
+
+	if useStudio then
+		if script.Parent:FindFirstChild('configuration') then script.Parent.configuration:Destroy() end
+		local ScreenGui = Instance.new("ScreenGui")
+		ScreenGui.Parent = script.Parent
+		ScreenGui.Name = 'configuration'
+		local TextBox = Instance.new("TextBox")
+		TextBox.Parent = ScreenGui
+		TextBox.Size = UDim2.new(0, 800, 0, 50)
+		TextBox.AnchorPoint = Vector2.new(0.5, 0)
+		TextBox.Position = UDim2.new(0.5, 0, 0, 30)
+		TextBox.Text = HttpService:JSONEncode(Data)
+		TextBox.ClearTextOnFocus = false
+	end
+
+	callSafely(writefile, ConfigurationFolder .. "/" .. CFileName .. ConfigurationExtension, tostring(HttpService:JSONEncode(Data)))
+end
+
+function VeloraFieldLibrary:Notify(data)
+	task.spawn(function()
+		local newNotification = Notifications.Template:Clone()
+		newNotification.Name = data.Title or 'No Title Provided'
+		newNotification.Parent = Notifications
+		newNotification.LayoutOrder = #Notifications:GetChildren()
+		newNotification.Visible = false
+
+		newNotification.Title.Text = data.Title or "Unknown Title"
+		newNotification.Description.Text = data.Content or "Unknown Content"
+
+		if data.Image then
+			local img, rectOffset, rectSize = resolveIcon(data.Image)
+			newNotification.Icon.Image = img
+			if rectOffset then newNotification.Icon.ImageRectOffset = rectOffset end
+			if rectSize then newNotification.Icon.ImageRectSize = rectSize end
+		else
+			newNotification.Icon.Image = ""
+		end
+
+		newNotification.Title.TextColor3 = SelectedTheme.TextColor
+		newNotification.Description.TextColor3 = SelectedTheme.TextColor
+		newNotification.BackgroundColor3 = SelectedTheme.Background
+		newNotification.UIStroke.Color = SelectedTheme.TextColor
+		newNotification.Icon.ImageColor3 = SelectedTheme.TextColor
+
+		newNotification.BackgroundTransparency = 1
+		newNotification.Title.TextTransparency = 1
+		newNotification.Description.TextTransparency = 1
+		newNotification.UIStroke.Transparency = 1
+		newNotification.Shadow.ImageTransparency = 1
+		newNotification.Size = UDim2.new(1, 0, 0, 800)
+		newNotification.Icon.ImageTransparency = 1
+		newNotification.Icon.BackgroundTransparency = 1
+
+		task.wait()
+
+		newNotification.Visible = true
+
+		local bounds = {newNotification.Title.TextBounds.Y, newNotification.Description.TextBounds.Y}
+		newNotification.Size = UDim2.new(1, -60, 0, -Notifications:FindFirstChild("UIListLayout").Padding.Offset)
+		newNotification.Icon.Size = UDim2.new(0, 32, 0, 32)
+		newNotification.Icon.Position = UDim2.new(0, 20, 0.5, 0)
+
+		TweenService:Create(newNotification, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, 0, 0, math.max(bounds[1] + bounds[2] + 31, 60))}):Play()
+		task.wait(0.15)
+		TweenService:Create(newNotification, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.45}):Play()
+		TweenService:Create(newNotification.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+		task.wait(0.05)
+		TweenService:Create(newNotification.Icon, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+		task.wait(0.05)
+		TweenService:Create(newNotification.Description, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0.35}):Play()
+		TweenService:Create(newNotification.UIStroke, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Transparency = 0.95}):Play()
+		TweenService:Create(newNotification.Shadow, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0.82}):Play()
+
+		local waitDuration = math.min(math.max((#newNotification.Description.Text * 0.1) + 2.5, 3), 10)
+		task.wait(data.Duration or waitDuration)
+
+		newNotification.Icon.Visible = false
+		TweenService:Create(newNotification, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+		TweenService:Create(newNotification.UIStroke, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+		TweenService:Create(newNotification.Shadow, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+		TweenService:Create(newNotification.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+		TweenService:Create(newNotification.Description, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+		TweenService:Create(newNotification, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, -90, 0, 0)}):Play()
+		task.wait(1)
+		TweenService:Create(newNotification, TweenInfo.new(1, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, -90, 0, -Notifications:FindFirstChild("UIListLayout").Padding.Offset)}):Play()
+		newNotification.Visible = false
+		newNotification:Destroy()
+	end)
+end
+
+local function openSearch()
+	searchOpen = true
+
+	Main.Search.BackgroundTransparency = 1
+	Main.Search.Shadow.ImageTransparency = 1
+	Main.Search.Input.TextTransparency = 1
+	Main.Search.Search.ImageTransparency = 1
+	Main.Search.UIStroke.Transparency = 1
+	Main.Search.Size = UDim2.new(1, 0, 0, 80)
+	Main.Search.Position = UDim2.new(0.5, 0, 0, 70)
+	Main.Search.Input.Interactable = true
+	Main.Search.Visible = true
+
+	for _, tabbtn in ipairs(TabList:GetChildren()) do
+		if tabbtn.ClassName == "Frame" and tabbtn.Name ~= "Placeholder" then
+			tabbtn.Interact.Visible = false
+			TweenService:Create(tabbtn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+			TweenService:Create(tabbtn.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+			TweenService:Create(tabbtn.Image, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+			TweenService:Create(tabbtn.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+		end
+	end
+
+	Main.Search.Input:CaptureFocus()
+	TweenService:Create(Main.Search.Shadow, TweenInfo.new(0.05, Enum.EasingStyle.Quint), {ImageTransparency = 0.95}):Play()
+	TweenService:Create(Main.Search, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Position = UDim2.new(0.5, 0, 0, 57), BackgroundTransparency = 0.9}):Play()
+	TweenService:Create(Main.Search.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.8}):Play()
+	TweenService:Create(Main.Search.Input, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
+	TweenService:Create(Main.Search.Search, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0.5}):Play()
+	TweenService:Create(Main.Search, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, -35, 0, 35)}):Play()
+end
+
+local function closeSearch()
+	searchOpen = false
+
+	TweenService:Create(Main.Search, TweenInfo.new(0.35, Enum.EasingStyle.Quint), {BackgroundTransparency = 1, Size = UDim2.new(1, -55, 0, 30)}):Play()
+	TweenService:Create(Main.Search.Search, TweenInfo.new(0.15, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
+	TweenService:Create(Main.Search.Shadow, TweenInfo.new(0.15, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
+	TweenService:Create(Main.Search.UIStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quint), {Transparency = 1}):Play()
+	TweenService:Create(Main.Search.Input, TweenInfo.new(0.15, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
+
+	for _, tabbtn in ipairs(TabList:GetChildren()) do
+		if tabbtn.ClassName == "Frame" and tabbtn.Name ~= "Placeholder" then
+			tabbtn.Interact.Visible = true
+			if tostring(Elements.UIPageLayout.CurrentPage) == tabbtn.Title.Text then
+				TweenService:Create(tabbtn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+				TweenService:Create(tabbtn.Image, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+				TweenService:Create(tabbtn.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+				TweenService:Create(tabbtn.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+			else
+				TweenService:Create(tabbtn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
+				TweenService:Create(tabbtn.Image, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
+				TweenService:Create(tabbtn.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
+				TweenService:Create(tabbtn.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+			end
+		end
+	end
+
+	Main.Search.Input.Text = ''
+	Main.Search.Input.Interactable = false
+end
+
+local function setElementsVisible(show)
+	for _, tab in ipairs(Elements:GetChildren()) do
+		if tab.Name ~= "Template" and tab.ClassName == "ScrollingFrame" and tab.Name ~= "Placeholder" then
+			for _, element in ipairs(tab:GetChildren()) do
+				if element.ClassName == "Frame" then
+					if element.Name ~= "SectionSpacing" and element.Name ~= "Placeholder" then
+						if element.Name == "SectionTitle" or element.Name == 'SearchTitle-fsefsefesfsefesfesfThanks' then
+							TweenService:Create(element.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = show and 0.4 or 1}):Play()
+						elseif element.Name == 'Divider' then
+							TweenService:Create(element.Divider, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = show and 0.85 or 1}):Play()
+						else
+							TweenService:Create(element, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = show and 0.45 or 1}):Play()
+							TweenService:Create(element.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = show and 0 or 1}):Play()
+							TweenService:Create(element.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = show and 0 or 1}):Play()
+						end
+						for _, child in ipairs(element:GetChildren()) do
+							if child.ClassName == "Frame" or child.ClassName == "TextLabel" or child.ClassName == "TextBox" or child.ClassName == "ImageButton" or child.ClassName == "ImageLabel" then
+								child.Visible = show
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+local function setTabButtonsVisible(show)
+	for _, tabbtn in ipairs(TabList:GetChildren()) do
+		if tabbtn.ClassName == "Frame" and tabbtn.Name ~= "Placeholder" then
+			if show then
+				if tostring(Elements.UIPageLayout.CurrentPage) == tabbtn.Title.Text then
+					TweenService:Create(tabbtn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+					TweenService:Create(tabbtn.Image, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+					TweenService:Create(tabbtn.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+					TweenService:Create(tabbtn.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+				else
+					TweenService:Create(tabbtn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
+					TweenService:Create(tabbtn.Image, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
+					TweenService:Create(tabbtn.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
+					TweenService:Create(tabbtn.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+				end
+			else
+				TweenService:Create(tabbtn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+				TweenService:Create(tabbtn.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+				TweenService:Create(tabbtn.Image, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+				TweenService:Create(tabbtn.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+			end
+		end
+	end
+end
+
+local function Hide(notify: boolean?)
+	if MPrompt then
+		MPrompt.Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+		MPrompt.Position = UDim2.new(0.5, 0, 0, -50)
+		MPrompt.Size = UDim2.new(0, 40, 0, 10)
+		MPrompt.BackgroundTransparency = 1
+		MPrompt.Title.TextTransparency = 1
+		MPrompt.Visible = true
+	end
+
+	task.spawn(closeSearch)
+
+	Debounce = true
+	if notify then
+		if useMobilePrompt then
+			VeloraFieldLibrary:Notify({Title = "Interface Hidden", Content = "The interface has been hidden, you can unhide the interface by tapping 'Show'.", Duration = 7, Image = 4400697855})
+		else
+			VeloraFieldLibrary:Notify({Title = "Interface Hidden", Content = "The interface has been hidden, you can unhide the interface by tapping " .. tostring(getSetting("General", "rayfieldOpen")) .. ".", Duration = 7, Image = 4400697855})
+		end
+	end
+
+	TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 470, 0, 0)}):Play()
+	TweenService:Create(Main.Topbar, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 470, 0, 45)}):Play()
+	TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+	TweenService:Create(Main.Topbar, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+	TweenService:Create(Main.Topbar.Divider, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+	TweenService:Create(Main.Topbar.CornerRepair, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+	TweenService:Create(Main.Topbar.Title, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+	TweenService:Create(Main.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+	TweenService:Create(Topbar.UIStroke, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+	if dragBarCosmetic then
+		TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+	end
+
+	if useMobilePrompt and MPrompt then
+		TweenService:Create(MPrompt, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 120, 0, 30), Position = UDim2.new(0.5, 0, 0, 20), BackgroundTransparency = 0.3}):Play()
+		TweenService:Create(MPrompt.Title, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 0.3}):Play()
+	end
+
+	for _, TopbarButton in ipairs(Topbar:GetChildren()) do
+		if TopbarButton.ClassName == "ImageButton" then
+			TweenService:Create(TopbarButton, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+		end
+	end
+
+	setTabButtonsVisible(false)
+
+	if dragInteract then dragInteract.Visible = false end
+
+	setElementsVisible(false)
+
+	task.wait(0.5)
+	Main.Visible = false
+	Debounce = false
+end
+
+local function Maximise()
+	Debounce = true
+	Topbar.ChangeSize.Image = customAssets[tostring(10137941941)]
+
+	TweenService:Create(Topbar.UIStroke, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+	TweenService:Create(Main.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {ImageTransparency = 0.6}):Play()
+	TweenService:Create(Topbar.CornerRepair, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(Topbar.Divider, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0.7}):Play()
+	TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = useMobileSizing and UDim2.new(0, 500, 0, 275) or UDim2.new(0, 500, 0, 475)}):Play()
+	TweenService:Create(Topbar, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 500, 0, 45)}):Play()
+	TabList.Visible = true
+	task.wait(0.2)
+
+	Elements.Visible = true
+
+	setElementsVisible(true)
+
+	task.wait(0.1)
+
+	setTabButtonsVisible(true)
+
+	task.wait(0.5)
+	Debounce = false
+end
+
+local function Unhide()
+	Debounce = true
+	Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Main.Visible = true
+	TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = useMobileSizing and UDim2.new(0, 500, 0, 275) or UDim2.new(0, 500, 0, 475)}):Play()
+	TweenService:Create(Main.Topbar, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 500, 0, 45)}):Play()
+	TweenService:Create(Main.Shadow.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.6}):Play()
+	TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.15}):Play()
+	TweenService:Create(Main.Topbar, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(Main.Topbar.Divider, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(Main.Topbar.CornerRepair, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+	TweenService:Create(Main.Topbar.Title, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+
+	if MPrompt then
+		TweenService:Create(MPrompt, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 40, 0, 10), Position = UDim2.new(0.5, 0, 0, -50), BackgroundTransparency = 1}):Play()
+		TweenService:Create(MPrompt.Title, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+
+		task.spawn(function()
+			task.wait(0.5)
+			MPrompt.Visible = false
+		end)
+	end
+
+	if Minimised then
+		task.spawn(Maximise)
+	end
+
+	dragBar.Position = useMobileSizing and UDim2.new(0.5, 0, 0.5, dragOffsetMobile) or UDim2.new(0.5, 0, 0.5, dragOffset)
+
+	dragInteract.Visible = true
+
+	for _, TopbarButton in ipairs(Topbar:GetChildren()) do
+		if TopbarButton.ClassName == "ImageButton" then
+			if TopbarButton.Name == 'Icon' then
+				TweenService:Create(TopbarButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+			else
+				TweenService:Create(TopbarButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.8}):Play()
+			end
+		end
+	end
+
+	setTabButtonsVisible(true)
+	setElementsVisible(true)
+
+	TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0.5}):Play()
+
+	task.wait(0.5)
+	Minimised = false
+	Debounce = false
+end
+
+local function Minimise()
+	Debounce = true
+	Topbar.ChangeSize.Image = customAssets[tostring(11036884234)]
+
+	Topbar.UIStroke.Color = SelectedTheme.ElementStroke
+
+	task.spawn(closeSearch)
+
+	setTabButtonsVisible(false)
+	setElementsVisible(false)
+
+	TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+	TweenService:Create(Topbar.UIStroke, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+	TweenService:Create(Main.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+	TweenService:Create(Topbar.CornerRepair, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+	TweenService:Create(Topbar.Divider, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+	TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 495, 0, 45)}):Play()
+	TweenService:Create(Topbar, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 495, 0, 45)}):Play()
+
+	task.wait(0.3)
+
+	Elements.Visible = false
+	TabList.Visible = false
+
+	task.wait(0.2)
+	Debounce = false
+end
+
+local function saveSettings()
+	local encoded
+	local success, err = pcall(function()
+		encoded = HttpService:JSONEncode(settingsTable)
+	end)
+
+	if success then
+		if useStudio then
+			if script.Parent['get.val'] then
+				script.Parent['get.val'].Value = encoded
+			end
+		end
+		callSafely(writefile, RayfieldFolder..'/settings'..ConfigurationExtension, encoded)
+	end
+end
+
+local function updateSetting(category: string, setting: string, value: any)
+	if not settingsInitialized then
+		return
+	end
+	settingsTable[category][setting].Value = value
+	overriddenSettings[category .. "." .. setting] = nil
+	saveSettings()
+end
+
+local function createSettings(window)
+	if not (writefile and isfile and readfile and isfolder and makefolder) and not useStudio then
+		if Topbar['Settings'] then Topbar.Settings.Visible = false end
+		Topbar['Search'].Position = UDim2.new(1, -75, 0.5, 0)
+		warn('Can\'t create settings as no file-saving functionality is available.')
+		return
+	end
+
+	local newTab = window:CreateTab('VeloraField Settings', 0, true)
+
+	if TabList['VeloraField Settings'] then
+		TabList['VeloraField Settings'].LayoutOrder = 1000
+	end
+
+	if Elements['VeloraField Settings'] then
+		Elements['VeloraField Settings'].LayoutOrder = 1000
+	end
+
+	for categoryName, settingCategory in pairs(settingsTable) do
+		newTab:CreateSection(categoryName)
+
+		for settingName, setting in pairs(settingCategory) do
+			if setting.Type == 'input' then
+				setting.Element = newTab:CreateInput({
+					Name = setting.Name,
+					CurrentValue = setting.Value,
+					PlaceholderText = setting.Placeholder,
+					Ext = true,
+					RemoveTextAfterFocusLost = setting.ClearOnFocus,
+					Callback = function(Value)
+						updateSetting(categoryName, settingName, Value)
+					end,
+				})
+			elseif setting.Type == 'toggle' then
+				setting.Element = newTab:CreateToggle({
+					Name = setting.Name,
+					CurrentValue = setting.Value,
+					Ext = true,
+					Callback = function(Value)
+						updateSetting(categoryName, settingName, Value)
+					end,
+				})
+			elseif setting.Type == 'bind' then
+				setting.Element = newTab:CreateKeybind({
+					Name = setting.Name,
+					CurrentKeybind = setting.Value,
+					HoldToInteract = false,
+					Ext = true,
+					CallOnChange = true,
+					Callback = function(Value)
+						updateSetting(categoryName, settingName, Value)
+					end,
+				})
+			end
+		end
+	end
+
+	settingsCreated = true
+	loadSettings()
+	saveSettings()
+end
+
+local function fadeOutKeyUI(KeyMain)
+	TweenService:Create(KeyMain, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+	TweenService:Create(KeyMain, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 467, 0, 175)}):Play()
+	TweenService:Create(KeyMain.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+	TweenService:Create(KeyMain.Title, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+	TweenService:Create(KeyMain.Subtitle, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+	TweenService:Create(KeyMain.KeyNote, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+	TweenService:Create(KeyMain.Input, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 1}):Play()
+	TweenService:Create(KeyMain.Input.UIStroke, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+	TweenService:Create(KeyMain.Input.InputBox, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+	TweenService:Create(KeyMain.NoteTitle, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+	TweenService:Create(KeyMain.NoteMessage, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+	TweenService:Create(KeyMain.Hide, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {ImageTransparency = 1}):Play()
+end
+
+function VeloraFieldLibrary:CreateWindow(Settings)
+	if Rayfield:FindFirstChild('Loading') then
+		if getgenv and not getgenv().rayfieldCached then
+			Rayfield.Enabled = true
+			Rayfield.Loading.Visible = true
+
+			task.wait(1.4)
+			Rayfield.Loading.Visible = false
+		end
+	end
+
+	if getgenv then getgenv().rayfieldCached = true end
+
+	if not correctBuild and not Settings.DisableBuildWarnings then
+		task.delay(3,
+			function()
+				VeloraFieldLibrary:Notify({Title = 'Build Mismatch', Content = 'VeloraField may encounter issues as you are running an incompatible interface version ('.. ((Rayfield:FindFirstChild('Build') and Rayfield.Build.Value) or 'No Build') ..').\n\nThis version of VeloraField is intended for interface build '..InterfaceBuild..'.\n\nTry rejoining and then run the script twice.', Image = 4335487866, Duration = 15})
+			end)
+	end
+
+	if Settings.ToggleUIKeybind then
+		local keybind = Settings.ToggleUIKeybind
+		if type(keybind) == "string" then
+			keybind = string.upper(keybind)
+			assert(pcall(function()
+				return Enum.KeyCode[keybind]
+			end), "ToggleUIKeybind must be a valid KeyCode")
+			overrideSetting("General", "rayfieldOpen", keybind)
+		elseif typeof(keybind) == "EnumItem" then
+			assert(keybind.EnumType == Enum.KeyCode, "ToggleUIKeybind must be a KeyCode enum")
+			overrideSetting("General", "rayfieldOpen", keybind.Name)
+		else
+			error("ToggleUIKeybind must be a string or KeyCode enum")
+		end
+	end
+
+	ensureFolder(RayfieldFolder)
+
+	local Passthrough = false
+	Topbar.Title.Text = Settings.Name
+
+	Main.Size = UDim2.new(0, 420, 0, 100)
+	Main.Visible = true
+	Main.BackgroundTransparency = 0.15
+	if Main:FindFirstChild('Notice') then Main.Notice.Visible = false end
+	Main.Shadow.Image.ImageTransparency = 1
+
+	LoadingFrame.Title.TextTransparency = 1
+	LoadingFrame.Subtitle.TextTransparency = 1
+
+	if Settings.ShowText then
+		MPrompt.Title.Text = 'Show '..Settings.ShowText
+	end
+
+	LoadingFrame.Version.TextTransparency = 1
+	LoadingFrame.Title.Text = Settings.LoadingTitle or "VeloraField"
+	LoadingFrame.Subtitle.Text = Settings.LoadingSubtitle or "Interface Suite"
+
+	if Settings.LoadingTitle ~= "VeloraField Interface Suite" then
+		LoadingFrame.Version.Text = "VeloraField"
+	end
+
+	if Settings.Icon and Settings.Icon ~= 0 and Topbar:FindFirstChild('Icon') then
+		Topbar.Icon.Visible = true
+		Topbar.Title.Position = UDim2.new(0, 47, 0.5, 0)
+
+		if Settings.Icon then
+			local img, rectOffset, rectSize = resolveIcon(Settings.Icon)
+			Topbar.Icon.Image = img
+			if rectOffset then Topbar.Icon.ImageRectOffset = rectOffset end
+			if rectSize then Topbar.Icon.ImageRectSize = rectSize end
+		else
+			Topbar.Icon.Image = ""
+		end
+	end
+
+	if dragBar then
+		dragBar.Visible = false
+		dragBarCosmetic.BackgroundTransparency = 1
+		dragBar.Visible = true
+	end
+
+	if Settings.Theme then
+		local success, result = pcall(ChangeTheme, Settings.Theme)
+		if not success then
+			local success, result2 = pcall(ChangeTheme, 'Default')
+			if not success then
+				warn('CRITICAL ERROR - NO DEFAULT THEME')
+				print(result2)
+			end
+			warn('issue rendering theme. no theme on file')
+			print(result)
+		end
+	end
+
+	Topbar.Visible = false
+	Elements.Visible = false
+	LoadingFrame.Visible = true
+
+	if not Settings.DisableRayfieldPrompts then
+		task.spawn(function()
+			while not rayfieldDestroyed do
+				task.wait(math.random(180, 600))
+				if rayfieldDestroyed then break end
+				VeloraFieldLibrary:Notify({
+					Title = "VeloraField Interface",
+					Content = "Powered by VeloraField UI",
+					Duration = 7,
+					Image = 4370033185,
+				})
+			end
+		end)
+	end
+
+	pcall(function()
+		if not Settings.ConfigurationSaving.FileName then
+			Settings.ConfigurationSaving.FileName = tostring(game.PlaceId)
+		end
+
+		if Settings.ConfigurationSaving.Enabled == nil then
+			Settings.ConfigurationSaving.Enabled = false
+		end
+
+		CFileName = Settings.ConfigurationSaving.FileName
+		ConfigurationFolder = Settings.ConfigurationSaving.FolderName or ConfigurationFolder
+		CEnabled = Settings.ConfigurationSaving.Enabled
+
+		if Settings.ConfigurationSaving.Enabled then
+			ensureFolder(ConfigurationFolder)
+		end
+	end)
+
+	makeDraggable(Main, Topbar, false, {dragOffset, dragOffsetMobile})
+	if dragBar then dragBar.Position = useMobileSizing and UDim2.new(0.5, 0, 0.5, dragOffsetMobile) or UDim2.new(0.5, 0, 0.5, dragOffset) makeDraggable(Main, dragInteract, true, {dragOffset, dragOffsetMobile}) end
+
+	for _, TabButton in ipairs(TabList:GetChildren()) do
+		if TabButton.ClassName == "Frame" and TabButton.Name ~= "Placeholder" then
+			TabButton.BackgroundTransparency = 1
+			TabButton.Title.TextTransparency = 1
+			TabButton.Image.ImageTransparency = 1
+			TabButton.UIStroke.Transparency = 1
+		end
+	end
+
+	if Settings.Discord and Settings.Discord.Enabled and not useStudio and not secureMode then
+		ensureFolder(RayfieldFolder.."/Discord Invites")
+
+		if not callSafely(isfile, RayfieldFolder.."/Discord Invites".."/"..Settings.Discord.Invite..ConfigurationExtension) then
+			if requestFunc then
+				pcall(function()
+					requestFunc({
+						Url = 'http://127.0.0.1:6463/rpc?v=1',
+						Method = 'POST',
+						Headers = {
+							['Content-Type'] = 'application/json',
+							Origin = 'https://discord.com'
+						},
+						Body = HttpService:JSONEncode({
+							cmd = 'INVITE_BROWSER',
+							nonce = HttpService:GenerateGUID(false),
+							args = {code = Settings.Discord.Invite}
+						})
+					})
+				end)
+			end
+
+			if Settings.Discord.RememberJoins then
+				callSafely(writefile, RayfieldFolder.."/Discord Invites".."/"..Settings.Discord.Invite..ConfigurationExtension,"VeloraField RememberJoins is true for this invite, this invite will not ask you to join again")
+			end
+		end
+	end
+
+	if (Settings.KeySystem) then
+		if not Settings.KeySettings then
+			Passthrough = true
+			return
+		end
+
+		ensureFolder(RayfieldFolder.."/Key System")
+
+		if typeof(Settings.KeySettings.Key) == "string" then Settings.KeySettings.Key = {Settings.KeySettings.Key} end
+
+		if Settings.KeySettings.GrabKeyFromSite then
+			for i, Key in ipairs(Settings.KeySettings.Key) do
+				local Success, Response = pcall(function()
+					Settings.KeySettings.Key[i] = tostring(game:HttpGet(Key):gsub("[\n\r]", " "))
+					Settings.KeySettings.Key[i] = string.gsub(Settings.KeySettings.Key[i], " ", "")
+				end)
+				if not Success then
+					print("VeloraField | "..Key.." Error " ..tostring(Response))
+					warn('Check docs.sirius.menu for help with VeloraField specific development.')
+				end
+			end
+		end
+
+		if not Settings.KeySettings.FileName then
+			Settings.KeySettings.FileName = "No file name specified"
+		end
+
+		if callSafely(isfile, RayfieldFolder.."/Key System".."/"..Settings.KeySettings.FileName..ConfigurationExtension) then
+			for _, MKey in ipairs(Settings.KeySettings.Key) do
+				local savedKeys = callSafely(readfile, RayfieldFolder.."/Key System".."/"..Settings.KeySettings.FileName..ConfigurationExtension)
+				if savedKeys and string.find(savedKeys, MKey) then
+					Passthrough = true
+				end
+			end
+		end
+
+		if not Passthrough and secureMode then
+			warn("VeloraField | Secure Mode: Key system requires a valid saved key.")
+			Rayfield.Enabled = false
+			return VeloraFieldLibrary
+		end
+
+		if not Passthrough then
+			local AttemptsRemaining = Settings.KeySettings.MaxAttempts or 5
+			Rayfield.Enabled = false
+			local KeyUI = useStudio and script.Parent:FindFirstChild('Key') or game:GetObjects("rbxassetid://11380036235")[1]
+
+			KeyUI.Enabled = true
+
+			if gethui then
+				KeyUI.Parent = gethui()
+			elseif syn and syn.protect_gui then
+				syn.protect_gui(KeyUI)
+				KeyUI.Parent = CoreGui
+			elseif not useStudio and CoreGui:FindFirstChild("RobloxGui") then
+				KeyUI.Parent = CoreGui:FindFirstChild("RobloxGui")
+			elseif not useStudio then
+				KeyUI.Parent = CoreGui
+			end
+
+			if gethui then
+				for _, Interface in ipairs(gethui():GetChildren()) do
+					if Interface.Name == KeyUI.Name and Interface ~= KeyUI then
+						Interface.Enabled = false
+						Interface.Name = "KeyUI-Old"
+					end
+				end
+			elseif not useStudio then
+				for _, Interface in ipairs(CoreGui:GetChildren()) do
+					if Interface.Name == KeyUI.Name and Interface ~= KeyUI then
+						Interface.Enabled = false
+						Interface.Name = "KeyUI-Old"
+					end
+				end
+			end
+
+			local KeyMain = KeyUI.Main
+			KeyMain.Title.Text = Settings.KeySettings.Title or Settings.Name
+			KeyMain.Subtitle.Text = Settings.KeySettings.Subtitle or "Key System"
+			KeyMain.NoteMessage.Text = Settings.KeySettings.Note or "No instructions"
+
+			KeyMain.Size = UDim2.new(0, 467, 0, 175)
+			KeyMain.BackgroundTransparency = 1
+			KeyMain.Shadow.Image.ImageTransparency = 1
+			KeyMain.Title.TextTransparency = 1
+			KeyMain.Subtitle.TextTransparency = 1
+			KeyMain.KeyNote.TextTransparency = 1
+			KeyMain.Input.BackgroundTransparency = 1
+			KeyMain.Input.UIStroke.Transparency = 1
+			KeyMain.Input.InputBox.TextTransparency = 1
+			KeyMain.NoteTitle.TextTransparency = 1
+			KeyMain.NoteMessage.TextTransparency = 1
+			KeyMain.Hide.ImageTransparency = 1
+
+			TweenService:Create(KeyMain, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+			TweenService:Create(KeyMain, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 500, 0, 187)}):Play()
+			TweenService:Create(KeyMain.Shadow.Image, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {ImageTransparency = 0.5}):Play()
+			task.wait(0.05)
+			TweenService:Create(KeyMain.Title, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+			TweenService:Create(KeyMain.Subtitle, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+			task.wait(0.05)
+			TweenService:Create(KeyMain.KeyNote, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+			TweenService:Create(KeyMain.Input, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+			TweenService:Create(KeyMain.Input.UIStroke, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {Transparency = 0}):Play()
+			TweenService:Create(KeyMain.Input.InputBox, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+			task.wait(0.05)
+			TweenService:Create(KeyMain.NoteTitle, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+			TweenService:Create(KeyMain.NoteMessage, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+			task.wait(0.15)
+			TweenService:Create(KeyMain.Hide, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {ImageTransparency = 0.3}):Play()
+
+			KeyUI.Main.Input.InputBox.FocusLost:Connect(function()
+				if #KeyUI.Main.Input.InputBox.Text == 0 then return end
+				local KeyFound = false
+				local FoundKey = ''
+				for _, MKey in ipairs(Settings.KeySettings.Key) do
+					if KeyMain.Input.InputBox.Text == MKey then
+						KeyFound = true
+						FoundKey = MKey
+					end
+				end
+				if KeyFound then
+					fadeOutKeyUI(KeyMain)
+					task.wait(0.51)
+					Passthrough = true
+					KeyMain.Visible = false
+					if Settings.KeySettings.SaveKey then
+						callSafely(writefile, RayfieldFolder.."/Key System".."/"..Settings.KeySettings.FileName..ConfigurationExtension, FoundKey)
+						VeloraFieldLibrary:Notify({Title = "Key System", Content = "The key for this script has been saved successfully.", Image = 3605522284})
+					end
+				else
+					if AttemptsRemaining == 0 then
+						fadeOutKeyUI(KeyMain)
+						task.wait(0.45)
+						Players.LocalPlayer:Kick("No Attempts Remaining")
+						game:Shutdown()
+					end
+					KeyMain.Input.InputBox.Text = ""
+					AttemptsRemaining = AttemptsRemaining - 1
+					TweenService:Create(KeyMain, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 467, 0, 175)}):Play()
+					TweenService:Create(KeyMain, TweenInfo.new(0.4, Enum.EasingStyle.Elastic), {Position = UDim2.new(0.495,0,0.5,0)}):Play()
+					task.wait(0.1)
+					TweenService:Create(KeyMain, TweenInfo.new(0.4, Enum.EasingStyle.Elastic), {Position = UDim2.new(0.505,0,0.5,0)}):Play()
+					task.wait(0.1)
+					TweenService:Create(KeyMain, TweenInfo.new(0.4, Enum.EasingStyle.Exponential), {Position = UDim2.new(0.5,0,0.5,0)}):Play()
+					TweenService:Create(KeyMain, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 500, 0, 187)}):Play()
+				end
+			end)
+
+			KeyMain.Hide.MouseButton1Click:Connect(function()
+				fadeOutKeyUI(KeyMain)
+				task.wait(0.51)
+				Passthrough = true
+				VeloraFieldLibrary:Destroy()
+				KeyUI:Destroy()
+			end)
+		else
+			Passthrough = true
+		end
+	end
+	if Settings.KeySystem then
+		repeat task.wait() until Passthrough
+		if rayfieldDestroyed then return end
+	end
+
+	Notifications.Template.Visible = false
+	Notifications.Visible = true
+	Rayfield.Enabled = true
+
+	task.wait(0.5)
+	TweenService:Create(Main, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.15}):Play()
+	TweenService:Create(Main.Shadow.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.6}):Play()
+	task.wait(0.1)
+	TweenService:Create(LoadingFrame.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+	task.wait(0.05)
+	TweenService:Create(LoadingFrame.Subtitle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+	task.wait(0.05)
+	TweenService:Create(LoadingFrame.Version, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+
+	Elements.Template.LayoutOrder = 100000
+	Elements.Template.Visible = false
+
+	Elements.UIPageLayout.FillDirection = Enum.FillDirection.Horizontal
+	TabList.Template.Visible = false
+
+	local FirstTab = false
+	local Window = {}
+	function Window:CreateTab(Name, Image, Ext)
+		local SDone = false
+		local TabButton = TabList.Template:Clone()
+		TabButton.Name = Name
+		TabButton.Title.Text = Name
+		TabButton.Parent = TabList
+		TabButton.Title.TextWrapped = false
+		TabButton.Size = UDim2.new(0, TabButton.Title.TextBounds.X + 30, 0, 30)
+
+		if Image and Image ~= 0 then
+			local img, rectOffset, rectSize = resolveIcon(Image)
+			TabButton.Image.Image = img
+			if rectOffset then TabButton.Image.ImageRectOffset = rectOffset end
+			if rectSize then TabButton.Image.ImageRectSize = rectSize end
+
+			TabButton.Title.AnchorPoint = Vector2.new(0, 0.5)
+			TabButton.Title.Position = UDim2.new(0, 37, 0.5, 0)
+			TabButton.Image.Visible = true
+			TabButton.Title.TextXAlignment = Enum.TextXAlignment.Left
+			TabButton.Size = UDim2.new(0, TabButton.Title.TextBounds.X + 52, 0, 30)
+		end
+
+		TabButton.BackgroundTransparency = 1
+		TabButton.Title.TextTransparency = 1
+		TabButton.Image.ImageTransparency = 1
+		TabButton.UIStroke.Transparency = 1
+
+		TabButton.Visible = not Ext or false
+
+		local TabPage = Elements.Template:Clone()
+		TabPage.Name = Name
+		TabPage.Visible = true
+
+		TabPage.LayoutOrder = #Elements:GetChildren() or Ext and 10000
+
+		for _, TemplateElement in ipairs(TabPage:GetChildren()) do
+			if TemplateElement.ClassName == "Frame" and TemplateElement.Name ~= "Placeholder" then
+				TemplateElement:Destroy()
+			end
+		end
+
+		TabPage.Parent = Elements
+		if not FirstTab and not Ext then
+			Elements.UIPageLayout.Animated = false
+			Elements.UIPageLayout:JumpTo(TabPage)
+			Elements.UIPageLayout.Animated = true
+		end
+
+		TabButton.UIStroke.Color = SelectedTheme.TabStroke
+
+		if Elements.UIPageLayout.CurrentPage == TabPage then
+			TabButton.BackgroundColor3 = SelectedTheme.TabBackgroundSelected
+			TabButton.Image.ImageColor3 = SelectedTheme.SelectedTabTextColor
+			TabButton.Title.TextColor3 = SelectedTheme.SelectedTabTextColor
+		else
+			TabButton.BackgroundColor3 = SelectedTheme.TabBackground
+			TabButton.Image.ImageColor3 = SelectedTheme.TabTextColor
+			TabButton.Title.TextColor3 = SelectedTheme.TabTextColor
+		end
+
+		task.wait(0.1)
+		if FirstTab or Ext then
+			TabButton.BackgroundColor3 = SelectedTheme.TabBackground
+			TabButton.Image.ImageColor3 = SelectedTheme.TabTextColor
+			TabButton.Title.TextColor3 = SelectedTheme.TabTextColor
+			TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
+			TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
+			TweenService:Create(TabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
+		else
+			TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+			TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+			TweenService:Create(TabButton.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+		end
+
+		if not FirstTab then FirstTab = true end
+
+		local Tab = {}
+
+		TabButton.Interact.MouseButton1Click:Connect(function()
+			if Debounce then return end
+			if searchOpen then
+				closeSearch()
+				task.wait(0.35)
+			end
+
+			Elements.UIPageLayout.Animated = true
+			Elements.UIPageLayout:JumpTo(TabPage)
+
+			for _, OtherTabButton in ipairs(TabList:GetChildren()) do
+				if OtherTabButton.ClassName == "Frame" and OtherTabButton.Name ~= "Placeholder" then
+					if OtherTabButton == TabButton then
+						TweenService:Create(OtherTabButton, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
+						TweenService:Create(OtherTabButton.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+						TweenService:Create(OtherTabButton.Image, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+						TweenService:Create(OtherTabButton.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 1}):Play()
+						OtherTabButton.BackgroundColor3 = SelectedTheme.TabBackgroundSelected
+						OtherTabButton.Image.ImageColor3 = SelectedTheme.SelectedTabTextColor
+						OtherTabButton.Title.TextColor3 = SelectedTheme.SelectedTabTextColor
+					else
+						TweenService:Create(OtherTabButton, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
+						TweenService:Create(OtherTabButton.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
+						TweenService:Create(OtherTabButton.Image, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
+						TweenService:Create(OtherTabButton.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+						OtherTabButton.BackgroundColor3 = SelectedTheme.TabBackground
+						OtherTabButton.Image.ImageColor3 = SelectedTheme.TabTextColor
+						OtherTabButton.Title.TextColor3 = SelectedTheme.TabTextColor
+					end
+				end
+			end
+		end)
+
+		local function getMountPoint(location)
+			local MountPoint = nil
+			local ScrollParent = TabPage
+			local order = #TabPage:GetChildren() - 1
+
+			if location then
+				for _, child in ipairs(TabPage:GetChildren()) do
+					if child:IsA("Frame") and child.Name == "SectionTitle" then
+						if child.Title.Text == location then
+							order = child.LayoutOrder + 0.5
+							break
+						end
+					end
+				end
+			end
+
+			MountPoint = {Parent = ScrollParent, Order = order}
+			return MountPoint
+		end
+
+		function Tab:CreateButton(Settings)
+			Settings = Settings or {}
+			local MountPoint = getMountPoint(Settings.Section)
+			local newButton = Elements.Template.Button:Clone()
+
+			newButton.Name = Settings.Name
+			newButton.Title.Text = Settings.Name
+			newButton.BackgroundTransparency = 0.45
+			newButton.Parent = MountPoint.Parent
+			newButton.LayoutOrder = MountPoint.Order
+			newButton.BackgroundColor3 = SelectedTheme.ElementBackground
+			newButton.UIStroke.Color = SelectedTheme.ElementStroke
+
+			if Settings.Description then
+				newButton.Title.Position = UDim2.new(0, 10, 0.3, 0)
+				newButton.Description.Visible = true
+				newButton.Description.Text = Settings.Description
+				newButton.Size = UDim2.new(1, 0, 0, 55)
+			end
+
+			local ButtonFunc = Settings.Callback or Settings.callback or function() end
+
+			newButton.Interact.MouseButton1Click:Connect(function()
+				if Debounce then return end
+				TweenService:Create(newButton, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.85}):Play()
+				task.wait(0.2)
+				TweenService:Create(newButton, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.45}):Play()
+				task.spawn(ButtonFunc)
+			end)
+
+			newButton.Interact.MouseEnter:Connect(function()
+				TweenService:Create(newButton, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			end)
+
+			newButton.Interact.MouseLeave:Connect(function()
+				TweenService:Create(newButton, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			end)
+
+			local Button = {}
+			function Button:Set(NewText)
+				newButton.Title.Text = NewText
+			end
+			return Button
+		end
+
+		function Tab:CreateToggle(Settings)
+			Settings = Settings or {}
+			local MountPoint = getMountPoint(Settings.Section)
+			local newToggle = Elements.Template.Toggle:Clone()
+
+			newToggle.Name = Settings.Name
+			newToggle.Title.Text = Settings.Name
+			newToggle.BackgroundTransparency = 0.45
+			newToggle.Parent = MountPoint.Parent
+			newToggle.LayoutOrder = MountPoint.Order
+			newToggle.BackgroundColor3 = SelectedTheme.ElementBackground
+			newToggle.UIStroke.Color = SelectedTheme.ElementStroke
+
+			if Settings.Description then
+				newToggle.Title.Position = UDim2.new(0, 10, 0.3, 0)
+				newToggle.Description.Visible = true
+				newToggle.Description.Text = Settings.Description
+				newToggle.Size = UDim2.new(1, 0, 0, 55)
+				newToggle.Switch.Position = UDim2.new(1, -57, 0.4, 0)
+			end
+
+			local ToggleState = Settings.CurrentValue or Settings.currentvalue or false
+			VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name] = {
+				Value = ToggleState,
+				Type = "Toggle",
+				CurrentValue = ToggleState,
+				Set = function(State)
+					ToggleState = State
+					VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name].CurrentValue = State
+					if State then
+						TweenService:Create(newToggle.Switch.Knob, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Position = UDim2.new(1, -23, 0.5, 0)}):Play()
+						TweenService:Create(newToggle.Switch, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
+						TweenService:Create(newToggle.Switch.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Color = SelectedTheme.ToggleEnabledStroke}):Play()
+						TweenService:Create(newToggle.Switch.UIStroke2, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Color = SelectedTheme.ToggleEnabledOuterStroke}):Play()
+					else
+						TweenService:Create(newToggle.Switch.Knob, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Position = UDim2.new(0, 3, 0.5, 0)}):Play()
+						TweenService:Create(newToggle.Switch, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
+						TweenService:Create(newToggle.Switch.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Color = SelectedTheme.ToggleDisabledStroke}):Play()
+						TweenService:Create(newToggle.Switch.UIStroke2, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Color = SelectedTheme.ToggleDisabledOuterStroke}):Play()
+					end
+				end
+			}
+
+			local Toggle = {}
+			Toggle.CurrentValue = ToggleState
+			Toggle.Type = "Toggle"
+			VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name] = Toggle
+
+			function Toggle:Set(State)
+				ToggleState = State
+				Toggle.CurrentValue = State
+				if State then
+					TweenService:Create(newToggle.Switch.Knob, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Position = UDim2.new(1, -23, 0.5, 0)}):Play()
+					TweenService:Create(newToggle.Switch, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ToggleEnabled}):Play()
+					TweenService:Create(newToggle.Switch.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Color = SelectedTheme.ToggleEnabledStroke}):Play()
+					TweenService:Create(newToggle.Switch.UIStroke2, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Color = SelectedTheme.ToggleEnabledOuterStroke}):Play()
+				else
+					TweenService:Create(newToggle.Switch.Knob, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Position = UDim2.new(0, 3, 0.5, 0)}):Play()
+					TweenService:Create(newToggle.Switch, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ToggleDisabled}):Play()
+					TweenService:Create(newToggle.Switch.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Color = SelectedTheme.ToggleDisabledStroke}):Play()
+					TweenService:Create(newToggle.Switch.UIStroke2, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Color = SelectedTheme.ToggleDisabledOuterStroke}):Play()
+				end
+				task.spawn(Settings.Callback or Settings.callback or function() end, State)
+				SaveConfiguration()
+			end
+
+			if ToggleState then
+				Toggle:Set(true)
+			else
+				Toggle:Set(false)
+			end
+
+			newToggle.Interact.MouseButton1Click:Connect(function()
+				if Debounce then return end
+				Toggle:Set(not ToggleState)
+			end)
+
+			newToggle.Interact.MouseEnter:Connect(function()
+				TweenService:Create(newToggle, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			end)
+
+			newToggle.Interact.MouseLeave:Connect(function()
+				TweenService:Create(newToggle, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			end)
+
+			if Settings.Ext then
+				return Toggle
+			end
+
+			return Toggle
+		end
+
+		function Tab:CreateSlider(Settings)
+			Settings = Settings or {}
+			local MountPoint = getMountPoint(Settings.Section)
+			local newSlider = Elements.Template.Slider:Clone()
+
+			newSlider.Name = Settings.Name
+			newSlider.Title.Text = Settings.Name
+			newSlider.BackgroundTransparency = 0.45
+			newSlider.Parent = MountPoint.Parent
+			newSlider.LayoutOrder = MountPoint.Order
+			newSlider.BackgroundColor3 = SelectedTheme.ElementBackground
+			newSlider.UIStroke.Color = SelectedTheme.ElementStroke
+
+			if Settings.Description then
+				newSlider.Title.Position = UDim2.new(0, 10, 0.3, 0)
+				newSlider.Description.Visible = true
+				newSlider.Description.Text = Settings.Description
+				newSlider.Size = UDim2.new(1, 0, 0, 65)
+				newSlider.Main.Position = UDim2.new(0.5, 0, 0.75, 0)
+			end
+
+			local Min = Settings.Range and Settings.Range[1] or 0
+			local Max = Settings.Range and Settings.Range[2] or 100
+			local CurrentValue = Settings.CurrentValue or Min
+			local Suffix = Settings.Suffix or ""
+
+			newSlider.Main.Bar.BackgroundColor3 = SelectedTheme.SliderBackground
+			newSlider.Main.Bar.UIStroke.Color = SelectedTheme.SliderStroke
+			newSlider.Main.Bar.Progress.BackgroundColor3 = SelectedTheme.SliderProgress
+
+			local Slider = {}
+			Slider.CurrentValue = CurrentValue
+			Slider.Type = "Slider"
+			VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name] = Slider
+
+			local function updateSlider(value)
+				value = math.clamp(value, Min, Max)
+				if Settings.Increment then
+					value = math.round(value / Settings.Increment) * Settings.Increment
+				end
+				Slider.CurrentValue = value
+				VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name].CurrentValue = value
+				local progress = (value - Min) / (Max - Min)
+				TweenService:Create(newSlider.Main.Bar.Progress, TweenInfo.new(0.2, Enum.EasingStyle.Exponential), {Size = UDim2.new(progress, 0, 1, 0)}):Play()
+				newSlider.Main.Value.Text = tostring(value) .. Suffix
+			end
+
+			function Slider:Set(value)
+				updateSlider(value)
+				task.spawn(Settings.Callback or Settings.callback or function() end, value)
+				SaveConfiguration()
+			end
+
+			updateSlider(CurrentValue)
+
+			local isDragging = false
+			newSlider.Main.Bar.InputBegan:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+					isDragging = true
+				end
+			end)
+
+			UserInputService.InputEnded:Connect(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+					isDragging = false
+				end
+			end)
+
+			RunService.RenderStepped:Connect(function()
+				if isDragging then
+					local mousePos = UserInputService:GetMouseLocation()
+					local barPos = newSlider.Main.Bar.AbsolutePosition
+					local barSize = newSlider.Main.Bar.AbsoluteSize
+					local relative = math.clamp((mousePos.X - barPos.X) / barSize.X, 0, 1)
+					local value = Min + (Max - Min) * relative
+					Slider:Set(value)
+				end
+			end)
+
+			newSlider.Interact.MouseEnter:Connect(function()
+				TweenService:Create(newSlider, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			end)
+
+			newSlider.Interact.MouseLeave:Connect(function()
+				TweenService:Create(newSlider, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			end)
+
+			return Slider
+		end
+
+		function Tab:CreateInput(Settings)
+			Settings = Settings or {}
+			local MountPoint = getMountPoint(Settings.Section)
+			local newInput = Elements.Template.Input:Clone()
+
+			newInput.Name = Settings.Name
+			newInput.Title.Text = Settings.Name
+			newInput.BackgroundTransparency = 0.45
+			newInput.Parent = MountPoint.Parent
+			newInput.LayoutOrder = MountPoint.Order
+			newInput.BackgroundColor3 = SelectedTheme.ElementBackground
+			newInput.UIStroke.Color = SelectedTheme.ElementStroke
+
+			if Settings.Description then
+				newInput.Title.Position = UDim2.new(0, 10, 0.3, 0)
+				newInput.Description.Visible = true
+				newInput.Description.Text = Settings.Description
+				newInput.Size = UDim2.new(1, 0, 0, 55)
+				newInput.InputFrame.Position = UDim2.new(1, -170, 0.5, 8)
+			end
+
+			newInput.InputFrame.InputBox.PlaceholderText = Settings.PlaceholderText or "..."
+			newInput.InputFrame.BackgroundColor3 = SelectedTheme.InputBackground
+			newInput.InputFrame.UIStroke.Color = SelectedTheme.InputStroke
+			newInput.InputFrame.InputBox.PlaceholderColor3 = SelectedTheme.PlaceholderColor
+
+			if Settings.CurrentValue then
+				newInput.InputFrame.InputBox.Text = tostring(Settings.CurrentValue)
+			end
+
+			local Input = {}
+			Input.CurrentValue = Settings.CurrentValue or ""
+			Input.Type = "Input"
+			VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name] = Input
+
+			function Input:Set(text)
+				newInput.InputFrame.InputBox.Text = tostring(text)
+				Input.CurrentValue = text
+				VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name].CurrentValue = text
+			end
+
+			newInput.InputFrame.InputBox.FocusLost:Connect(function()
+				local value = newInput.InputFrame.InputBox.Text
+				Input.CurrentValue = value
+				VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name].CurrentValue = value
+				if Settings.RemoveTextAfterFocusLost then
+					newInput.InputFrame.InputBox.Text = ""
+				end
+				task.spawn(Settings.Callback or Settings.callback or function() end, value)
+				SaveConfiguration()
+			end)
+
+			newInput.Interact.MouseEnter:Connect(function()
+				TweenService:Create(newInput, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			end)
+
+			newInput.Interact.MouseLeave:Connect(function()
+				TweenService:Create(newInput, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			end)
+
+			if Settings.Ext then
+				return Input
+			end
+
+			return Input
+		end
+
+		function Tab:CreateDropdown(Settings)
+			Settings = Settings or {}
+			local MountPoint = getMountPoint(Settings.Section)
+			local newDropdown = Elements.Template.Dropdown:Clone()
+
+			newDropdown.Name = Settings.Name
+			newDropdown.Title.Text = Settings.Name
+			newDropdown.BackgroundTransparency = 0.45
+			newDropdown.Parent = MountPoint.Parent
+			newDropdown.LayoutOrder = MountPoint.Order
+			newDropdown.BackgroundColor3 = SelectedTheme.ElementBackground
+			newDropdown.UIStroke.Color = SelectedTheme.ElementStroke
+
+			if Settings.Description then
+				newDropdown.Title.Position = UDim2.new(0, 10, 0.25, 0)
+				newDropdown.Description.Visible = true
+				newDropdown.Description.Text = Settings.Description
+			end
+
+			local Options = Settings.Options or {}
+			local CurrentOption = Settings.CurrentOption or (Settings.MultipleOptions and {} or (Options[1] or ""))
+			local isOpen = false
+
+			local Dropdown = {}
+			Dropdown.CurrentOption = CurrentOption
+			Dropdown.Type = "Dropdown"
+			VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name] = Dropdown
+
+			local function updateDisplay()
+				if Settings.MultipleOptions then
+					if #Dropdown.CurrentOption == 0 then
+						newDropdown.Selected.Text = Settings.Placeholder or "Select..."
+					else
+						newDropdown.Selected.Text = table.concat(Dropdown.CurrentOption, ", ")
+					end
+				else
+					newDropdown.Selected.Text = Dropdown.CurrentOption ~= "" and Dropdown.CurrentOption or (Settings.Placeholder or "Select...")
+				end
+			end
+
+			local function createOptions()
+				for _, child in ipairs(newDropdown.List:GetChildren()) do
+					if child:IsA("Frame") and child.Name ~= "Placeholder" then
+						child:Destroy()
+					end
+				end
+
+				for _, option in ipairs(Options) do
+					local optionFrame = Instance.new("Frame")
+					optionFrame.Name = option
+					optionFrame.Size = UDim2.new(1, 0, 0, 35)
+					optionFrame.BackgroundColor3 = SelectedTheme.DropdownUnselected
+					optionFrame.BackgroundTransparency = 0.5
+					optionFrame.Parent = newDropdown.List
+
+					local uiCorner = Instance.new("UICorner")
+					uiCorner.CornerRadius = UDim.new(0, 4)
+					uiCorner.Parent = optionFrame
+
+					local title = Instance.new("TextLabel")
+					title.Name = "Title"
+					title.Size = UDim2.new(1, -10, 1, 0)
+					title.Position = UDim2.new(0, 10, 0, 0)
+					title.BackgroundTransparency = 1
+					title.Text = option
+					title.TextColor3 = SelectedTheme.TextColor
+					title.TextXAlignment = Enum.TextXAlignment.Left
+					title.Font = Enum.Font.GothamMedium
+					title.TextSize = 14
+					title.Parent = optionFrame
+
+					local interact = Instance.new("TextButton")
+					interact.Name = "Interact"
+					interact.Size = UDim2.new(1, 0, 1, 0)
+					interact.BackgroundTransparency = 1
+					interact.Text = ""
+					interact.Parent = optionFrame
+
+					interact.MouseButton1Click:Connect(function()
+						if Settings.MultipleOptions then
+							local found = false
+							for i, v in ipairs(Dropdown.CurrentOption) do
+								if v == option then
+									table.remove(Dropdown.CurrentOption, i)
+									found = true
+									break
+								end
+							end
+							if not found then
+								table.insert(Dropdown.CurrentOption, option)
+							end
+						else
+							Dropdown.CurrentOption = option
+						end
+						updateDisplay()
+						task.spawn(Settings.Callback or Settings.callback or function() end, Dropdown.CurrentOption)
+						SaveConfiguration()
+						if not Settings.MultipleOptions then
+							isOpen = false
+							TweenService:Create(newDropdown, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, 0, 0, 45)}):Play()
+							TweenService:Create(newDropdown.Toggle, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Rotation = 180}):Play()
+							newDropdown.List.Visible = false
+						end
+					end)
+
+					interact.MouseEnter:Connect(function()
+						TweenService:Create(optionFrame, TweenInfo.new(0.2, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.DropdownSelected, BackgroundTransparency = 0.3}):Play()
+					end)
+
+					interact.MouseLeave:Connect(function()
+						TweenService:Create(optionFrame, TweenInfo.new(0.2, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.DropdownUnselected, BackgroundTransparency = 0.5}):Play()
+					end)
+				end
+			end
+
+			createOptions()
+			updateDisplay()
+
+			function Dropdown:Set(option)
+				if Settings.MultipleOptions then
+					Dropdown.CurrentOption = type(option) == "table" and option or {option}
+				else
+					Dropdown.CurrentOption = option
+				end
+				updateDisplay()
+				task.spawn(Settings.Callback or Settings.callback or function() end, Dropdown.CurrentOption)
+				SaveConfiguration()
+			end
+
+			function Dropdown:Refresh(newOptions, currentOption)
+				Options = newOptions
+				if currentOption ~= nil then
+					Dropdown.CurrentOption = currentOption
+				elseif Settings.MultipleOptions then
+					Dropdown.CurrentOption = {}
+				else
+					Dropdown.CurrentOption = newOptions[1] or ""
+				end
+				createOptions()
+				updateDisplay()
+			end
+
+			newDropdown.Toggle.MouseButton1Click:Connect(function()
+				if Debounce then return end
+				isOpen = not isOpen
+				if isOpen then
+					newDropdown.List.Visible = true
+					local listSize = math.min(#Options * 38, 150)
+					TweenService:Create(newDropdown, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, 0, 0, 45 + listSize)}):Play()
+					TweenService:Create(newDropdown.Toggle, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Rotation = 0}):Play()
+				else
+					TweenService:Create(newDropdown, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Size = UDim2.new(1, 0, 0, 45)}):Play()
+					TweenService:Create(newDropdown.Toggle, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Rotation = 180}):Play()
+					task.wait(0.3)
+					newDropdown.List.Visible = false
+				end
+			end)
+
+			newDropdown.Interact.MouseEnter:Connect(function()
+				TweenService:Create(newDropdown, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			end)
+
+			newDropdown.Interact.MouseLeave:Connect(function()
+				TweenService:Create(newDropdown, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			end)
+
+			return Dropdown
+		end
+
+		function Tab:CreateKeybind(Settings)
+			Settings = Settings or {}
+			local MountPoint = getMountPoint(Settings.Section)
+			local newKeybind = Elements.Template.Keybind:Clone()
+
+			newKeybind.Name = Settings.Name
+			newKeybind.Title.Text = Settings.Name
+			newKeybind.BackgroundTransparency = 0.45
+			newKeybind.Parent = MountPoint.Parent
+			newKeybind.LayoutOrder = MountPoint.Order
+			newKeybind.BackgroundColor3 = SelectedTheme.ElementBackground
+			newKeybind.UIStroke.Color = SelectedTheme.ElementStroke
+
+			if Settings.Description then
+				newKeybind.Title.Position = UDim2.new(0, 10, 0.3, 0)
+				newKeybind.Description.Visible = true
+				newKeybind.Description.Text = Settings.Description
+				newKeybind.Size = UDim2.new(1, 0, 0, 55)
+				newKeybind.KeybindFrame.Position = UDim2.new(1, -90, 0.5, 8)
+			end
+
+			local CurrentKeybind = Settings.CurrentKeybind or "None"
+			local isListening = false
+
+			local Keybind = {}
+			Keybind.CurrentKeybind = CurrentKeybind
+			Keybind.Type = "Keybind"
+			VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name] = Keybind
+
+			newKeybind.KeybindFrame.KeybindBox.Text = CurrentKeybind
+
+			function Keybind:Set(key)
+				CurrentKeybind = key
+				Keybind.CurrentKeybind = key
+				VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name].CurrentKeybind = key
+				newKeybind.KeybindFrame.KeybindBox.Text = key
+				if Settings.CallOnChange then
+					task.spawn(Settings.Callback or Settings.callback or function() end, key)
+				end
+				SaveConfiguration()
+			end
+
+			newKeybind.KeybindFrame.MouseButton1Click:Connect(function()
+				if Debounce then return end
+				isListening = true
+				newKeybind.KeybindFrame.KeybindBox.Text = "..."
+			end)
+
+			local keybindConnection = UserInputService.InputBegan:Connect(function(input, processed)
+				if processed and not Settings.Ext then return end
+				if isListening then
+					isListening = false
+					local keyName = input.KeyCode.Name
+					Keybind:Set(keyName)
+				elseif not processed then
+					if input.KeyCode.Name == CurrentKeybind then
+						if Settings.HoldToInteract then
+						else
+							task.spawn(Settings.Callback or Settings.callback or function() end, CurrentKeybind)
+						end
+					end
+				end
+			end)
+
+			table.insert(keybindConnections, keybindConnection)
+
+			newKeybind.Interact.MouseEnter:Connect(function()
+				TweenService:Create(newKeybind, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			end)
+
+			newKeybind.Interact.MouseLeave:Connect(function()
+				TweenService:Create(newKeybind, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			end)
+
+			if Settings.Ext then
+				return Keybind
+			end
+
+			return Keybind
+		end
+
+		function Tab:CreateLabel(Settings)
+			Settings = Settings or {}
+			local MountPoint = getMountPoint(Settings.Section)
+			local newLabel = Elements.Template.Label:Clone()
+
+			newLabel.Name = Settings.Name or Settings.Title
+			newLabel.Title.Text = Settings.Name or Settings.Title
+			newLabel.BackgroundTransparency = 0.45
+			newLabel.Parent = MountPoint.Parent
+			newLabel.LayoutOrder = MountPoint.Order
+			newLabel.BackgroundColor3 = SelectedTheme.ElementBackground
+			newLabel.UIStroke.Color = SelectedTheme.ElementStroke
+
+			if Settings.Icon then
+				local img, rectOffset, rectSize = resolveIcon(Settings.Icon)
+				newLabel.Icon.Image = img
+				if rectOffset then newLabel.Icon.ImageRectOffset = rectOffset end
+				if rectSize then newLabel.Icon.ImageRectSize = rectSize end
+				newLabel.Icon.Visible = true
+				newLabel.Title.Position = UDim2.new(0, 35, 0.5, 0)
+			end
+
+			local Label = {}
+			function Label:Set(text)
+				newLabel.Title.Text = text
+			end
+			return Label
+		end
+
+		function Tab:CreateSection(text)
+			local MountPoint = getMountPoint()
+			local sectionTitle = Instance.new("Frame")
+			sectionTitle.Name = "SectionTitle"
+			sectionTitle.Size = UDim2.new(1, 0, 0, 30)
+			sectionTitle.BackgroundTransparency = 1
+			sectionTitle.LayoutOrder = MountPoint.Order
+			sectionTitle.Parent = MountPoint.Parent
+
+			local title = Instance.new("TextLabel")
+			title.Name = "Title"
+			title.Size = UDim2.new(1, -10, 1, 0)
+			title.Position = UDim2.new(0, 10, 0, 0)
+			title.BackgroundTransparency = 1
+			title.Text = text
+			title.TextColor3 = SelectedTheme.TextColor
+			title.TextTransparency = 0.4
+			title.TextXAlignment = Enum.TextXAlignment.Left
+			title.Font = Enum.Font.GothamBold
+			title.TextSize = 13
+			title.Parent = sectionTitle
+		end
+
+		function Tab:CreateColorPicker(Settings)
+			Settings = Settings or {}
+			local MountPoint = getMountPoint(Settings.Section)
+			local newCP = Elements.Template.ColorPicker:Clone()
+
+			newCP.Name = Settings.Name
+			newCP.Title.Text = Settings.Name
+			newCP.BackgroundTransparency = 0.45
+			newCP.Parent = MountPoint.Parent
+			newCP.LayoutOrder = MountPoint.Order
+			newCP.BackgroundColor3 = SelectedTheme.ElementBackground
+			newCP.UIStroke.Color = SelectedTheme.ElementStroke
+
+			local CurrentColor = Settings.Color or Color3.fromRGB(255, 255, 255)
+			local isOpen = false
+
+			local CP = {}
+			CP.Color = CurrentColor
+			CP.Type = "ColorPicker"
+			VeloraFieldLibrary.Flags[Settings.Flag or Settings.Name] = CP
+
+			newCP.CPBackground.MainCP.ImageColor3 = CurrentColor
+
+			function CP:Set(color)
+				CurrentColor = color
+				CP.Color = color
+				newCP.CPBackground.MainCP.ImageColor3 = color
+				task.spawn(Settings.Callback or Settings.callback or function() end, color)
+				SaveConfiguration()
+			end
+
+			newCP.Interact.MouseButton1Click:Connect(function()
+				if Debounce then return end
+				isOpen = not isOpen
+				newCP.CPBackground.Visible = isOpen
+			end)
+
+			newCP.Interact.MouseEnter:Connect(function()
+				TweenService:Create(newCP, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackgroundHover}):Play()
+			end)
+
+			newCP.Interact.MouseLeave:Connect(function()
+				TweenService:Create(newCP, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundColor3 = SelectedTheme.ElementBackground}):Play()
+			end)
+
+			return CP
+		end
+
+		function Tab:CreateParagraph(Settings)
+			Settings = Settings or {}
+			local MountPoint = getMountPoint(Settings.Section)
+			local newParagraph = Elements.Template.Paragraph:Clone()
+
+			newParagraph.Name = Settings.Title
+			newParagraph.Title.Text = Settings.Title
+			newParagraph.Content.Text = Settings.Content or ""
+			newParagraph.BackgroundTransparency = 0.45
+			newParagraph.Parent = MountPoint.Parent
+			newParagraph.LayoutOrder = MountPoint.Order
+			newParagraph.BackgroundColor3 = SelectedTheme.ElementBackground
+			newParagraph.UIStroke.Color = SelectedTheme.ElementStroke
+
+			local Paragraph = {}
+			function Paragraph:Set(title, content)
+				newParagraph.Title.Text = title
+				newParagraph.Content.Text = content
+			end
+			return Paragraph
+		end
+
+		return Tab
+	end
+
+	local typewriterText = {"V", "Ve", "Vel", "Velo", "Veloar", "Velora", "VeloraF", "VeloraFi", "VeloraFie", "VeloraFiel", "VeloraField"}
+	local typewriterIndex = 0
+
+	task.spawn(function()
+		for i, text in ipairs(typewriterText) do
+			LoadingFrame.Title.Text = text
+			task.wait(0.07)
+		end
+	end)
+
+	createSettings(Window)
+
+	task.spawn(function()
+		task.wait(3.5)
+		if rayfieldDestroyed then return end
+
+		local size = useMobileSizing and UDim2.new(0, 500, 0, 275) or UDim2.new(0, 500, 0, 475)
+
+		TweenService:Create(LoadingFrame.Title, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+		TweenService:Create(LoadingFrame.Subtitle, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+		TweenService:Create(LoadingFrame.Version, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+
+		task.wait(0.3)
+
+		LoadingFrame.Visible = false
+		Topbar.Visible = true
+		Elements.Visible = true
+
+		TweenService:Create(Main, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {Size = size}):Play()
+
+		task.wait(0.1)
+
+		for _, TopbarButton in ipairs(Topbar:GetChildren()) do
+			if TopbarButton.ClassName == "ImageButton" then
+				if TopbarButton.Name == 'Icon' then
+					TweenService:Create(TopbarButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
+				else
+					TweenService:Create(TopbarButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.8}):Play()
+				end
+			end
+		end
+
+		TweenService:Create(Topbar.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+
+		setTabButtonsVisible(true)
+
+		task.wait(0.1)
+
+		setElementsVisible(true)
+
+		if dragBar then
+			TweenService:Create(dragBarCosmetic, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0.7}):Play()
+		end
+
+		globalLoaded = true
+
+		if CEnabled then
+			ensureFolder(ConfigurationFolder)
+			if callSafely(isfile, ConfigurationFolder .. "/" .. CFileName .. ConfigurationExtension) then
+				local configData = callSafely(readfile, ConfigurationFolder .. "/" .. CFileName .. ConfigurationExtension)
+				if configData then
+					LoadConfiguration(configData)
+				end
+			end
+		end
+
+		Topbar.Search.MouseButton1Click:Connect(function()
+			if Debounce then return end
+			if searchOpen then
+				closeSearch()
+			else
+				openSearch()
+			end
+		end)
+
+		Main.Search.Input.FocusLost:Connect(function()
+			if not searchOpen then return end
+			local query = string.lower(Main.Search.Input.Text)
+			if #query == 0 then
+				closeSearch()
+				return
+			end
+
+			for _, TabPage in ipairs(Elements:GetChildren()) do
+				if TabPage.ClassName == "ScrollingFrame" and TabPage.Name ~= "Template" and TabPage.Name ~= "Placeholder" then
+					for _, element in ipairs(TabPage:GetChildren()) do
+						if element.ClassName == "Frame" and element:FindFirstChild("Title") then
+							if element.Name ~= "SectionTitle" and element.Name ~= "Placeholder" and element.Name ~= "SectionSpacing" and element.Name ~= "Divider" then
+								if string.find(string.lower(element.Title.Text), query) then
+									element.Visible = true
+								else
+									element.Visible = false
+								end
+							end
+						end
+					end
+				end
+			end
+		end)
+
+		Topbar.Hide.MouseButton1Click:Connect(function()
+			if Debounce then return end
+			Hide(true)
+		end)
+
+		Topbar.ChangeSize.MouseButton1Click:Connect(function()
+			if Debounce then return end
+			if Minimised then
+				Minimised = false
+				Maximise()
+			else
+				Minimised = true
+				Minimise()
+			end
+		end)
+
+		if Topbar:FindFirstChild('Settings') then
+			Topbar.Settings.MouseButton1Click:Connect(function()
+				if Debounce then return end
+				if searchOpen then
+					closeSearch()
+					task.wait(0.35)
+				end
+				Elements.UIPageLayout:JumpTo(Elements['VeloraField Settings'])
+				for _, tabbtn in ipairs(TabList:GetChildren()) do
+					if tabbtn.ClassName == "Frame" and tabbtn.Name ~= "Placeholder" then
+						TweenService:Create(tabbtn, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0.7}):Play()
+						TweenService:Create(tabbtn.Title, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {TextTransparency = 0.2}):Play()
+						TweenService:Create(tabbtn.Image, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {ImageTransparency = 0.2}):Play()
+						TweenService:Create(tabbtn.UIStroke, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {Transparency = 0.5}):Play()
+					end
+				end
+			end)
+		end
+
+		local conn = UserInputService.InputBegan:Connect(function(input, processed)
+			if processed then return end
+			if input.KeyCode == Enum.KeyCode[getSetting("General", "rayfieldOpen")] then
+				if Hidden then
+					Hidden = false
+					Unhide()
+				else
+					Hidden = true
+					Hide(true)
+				end
+			end
+		end)
+		table.insert(keybindConnections, conn)
+
+		if useMobilePrompt and MPrompt then
+			MPrompt.Interact.MouseButton1Click:Connect(function()
+				if Hidden then
+					Hidden = false
+					Unhide()
+				end
+			end)
+		end
+	end)
+
+	return Window
+end
+
+function VeloraFieldLibrary:Destroy()
+	rayfieldDestroyed = true
+	for _, conn in ipairs(keybindConnections) do
+		conn:Disconnect()
+	end
+	Rayfield:Destroy()
+end
+
+return VeloraFieldLibrary
